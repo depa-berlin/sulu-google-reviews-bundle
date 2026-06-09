@@ -40,6 +40,14 @@ class DepaGoogleReviewsExtension extends Extension implements PrependExtensionIn
             ]);
         }
 
+        if ($container->hasExtension('twig')) {
+            $container->prependExtensionConfig('twig', [
+                'paths' => [
+                    __DIR__ . '/../../Resources/views' => null,
+                ],
+            ]);
+        }
+
         if ($container->hasExtension('doctrine')) {
             $container->prependExtensionConfig('doctrine', [
                 'orm' => [
