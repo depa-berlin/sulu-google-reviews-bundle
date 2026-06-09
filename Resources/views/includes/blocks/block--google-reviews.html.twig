@@ -42,7 +42,7 @@
 
                             <time
                                 class="google-reviews__time"
-                                datetime="{{ review.createdAtTimestamp|date('Y-m-d', timestamp=true) }}"
+                                datetime="{{ review.createdAtTimestamp|date('Y-m-d') }}"
                             >
                                 {{ review.relativeTimeDescription }}
                             </time>
