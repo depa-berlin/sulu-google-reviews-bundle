@@ -1,0 +1,77 @@
+<?xml version="1.0" ?>
+<form xmlns="http://schemas.sulu.io/template/template"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="http://schemas.sulu.io/template/template http://schemas.sulu.io/template/form-1.0.xsd">
+
+    <key>google_review_details</key>
+
+    <properties>
+        <section name="review">
+            <meta>
+                <title lang="de">Bewertung</title>
+                <title lang="en">Review</title>
+            </meta>
+            <properties>
+                <property name="authorName" type="text_line" colspan="12">
+                    <meta>
+                        <title lang="de">Autor</title>
+                        <title lang="en">Author</title>
+                    </meta>
+                </property>
+
+                <property name="rating" type="text_line" colspan="6">
+                    <meta>
+                        <title lang="de">Bewertung (Sterne)</title>
+                        <title lang="en">Rating (Stars)</title>
+                    </meta>
+                </property>
+
+                <property name="relativeTimeDescription" type="text_line" colspan="6">
+                    <meta>
+                        <title lang="de">Zeitangabe</title>
+                        <title lang="en">Time Description</title>
+                    </meta>
+                </property>
+
+                <property name="text" type="text_area" colspan="12">
+                    <meta>
+                        <title lang="de">Text</title>
+                        <title lang="en">Text</title>
+                    </meta>
+                </property>
+
+                <property name="profilePhotoUrl" type="text_line" colspan="12">
+                    <meta>
+                        <title lang="de">Profilbild-URL</title>
+                        <title lang="en">Profile Photo URL</title>
+                    </meta>
+                </property>
+
+                <property name="createdAtTimestamp" type="text_line" colspan="12">
+                    <meta>
+                        <title lang="de">Erstellungsdatum (Unix-Timestamp)</title>
+                        <title lang="en">Created At (Unix Timestamp)</title>
+                    </meta>
+                </property>
+            </properties>
+        </section>
+
+        <section name="moderation">
+            <meta>
+                <title lang="de">Moderation</title>
+                <title lang="en">Moderation</title>
+            </meta>
+            <properties>
+                <property name="blocked" type="checkbox" colspan="12">
+                    <meta>
+                        <title lang="de">Bewertung sperren</title>
+                        <title lang="en">Block Review</title>
+                    </meta>
+                    <params>
+                        <param name="type" value="toggler"/>
+                    </params>
+                </property>
+            </properties>
+        </section>
+    </properties>
+</form>

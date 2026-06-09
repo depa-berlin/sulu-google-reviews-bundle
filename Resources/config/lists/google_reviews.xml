@@ -1,0 +1,31 @@
+<?xml version="1.0" ?>
+<list xmlns="http://schemas.sulu.io/list-builder/list">
+    <key>google_reviews</key>
+
+    <properties>
+        <property name="id" visibility="no" translation="sulu_admin.id">
+            <field-name>id</field-name>
+            <entity-name>Depa\SuluGoogleReviewsBundle\Entity\GoogleReview</entity-name>
+        </property>
+
+        <property name="authorName" visibility="always" searchability="yes" translation="Autor">
+            <field-name>authorName</field-name>
+            <entity-name>Depa\SuluGoogleReviewsBundle\Entity\GoogleReview</entity-name>
+        </property>
+
+        <property name="rating" visibility="always" translation="Bewertung">
+            <field-name>rating</field-name>
+            <entity-name>Depa\SuluGoogleReviewsBundle\Entity\GoogleReview</entity-name>
+        </property>
+
+        <property name="createdAtTimestamp" visibility="always" translation="Datum">
+            <field-name>createdAtTimestamp</field-name>
+            <entity-name>Depa\SuluGoogleReviewsBundle\Entity\GoogleReview</entity-name>
+        </property>
+
+        <property name="blocked" visibility="always" translation="Gesperrt">
+            <field-name>blocked</field-name>
+            <entity-name>Depa\SuluGoogleReviewsBundle\Entity\GoogleReview</entity-name>
+        </property>
+    </properties>
+</list>
