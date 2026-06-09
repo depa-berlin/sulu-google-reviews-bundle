@@ -21,11 +21,13 @@
         <property name="createdAtTimestamp" visibility="always" translation="Datum">
             <field-name>createdAtTimestamp</field-name>
             <entity-name>Depa\SuluGoogleReviewsBundle\Entity\GoogleReview</entity-name>
+            <transformer type="date"/>
         </property>
 
         <property name="blocked" visibility="always" translation="Gesperrt">
             <field-name>blocked</field-name>
             <entity-name>Depa\SuluGoogleReviewsBundle\Entity\GoogleReview</entity-name>
+            <transformer type="bool"/>
         </property>
     </properties>
 </list>

@@ -38,7 +38,13 @@ class GoogleReviewController extends AbstractController
         $listBuilder = $this->listBuilderFactory->create($fieldDescriptors['id']->getEntityName());
         $this->restHelper->initializeListBuilder($listBuilder, $fieldDescriptors);
 
-        $items = $listBuilder->execute();
+        $items = array_map(static function (array $item): array {
+            if (!empty($item['createdAtTimestamp'])) {
+                $item['createdAtTimestamp'] = date('Y-m-d', (int) $item['createdAtTimestamp']);
+            }
+
+            return $item;
+        }, $listBuilder->execute());
 
         $representation = new PaginatedRepresentation(
             $items,
