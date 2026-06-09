@@ -10,11 +10,13 @@ use Sulu\Component\Rest\ListBuilder\Doctrine\DoctrineListBuilderFactoryInterface
 use Sulu\Component\Rest\ListBuilder\Metadata\FieldDescriptorFactoryInterface;
 use Sulu\Component\Rest\ListBuilder\PaginatedRepresentation;
 use Sulu\Component\Rest\RestHelperInterface;
+use Sulu\Component\Security\Authorization\PermissionTypes;
+use Sulu\Component\Security\Authorization\SecurityCheckerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Security\Http\Attribute\IsGranted;
+use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 
 class GoogleReviewController extends AbstractController
 {
@@ -23,12 +25,14 @@ class GoogleReviewController extends AbstractController
         private readonly RestHelperInterface $restHelper,
         private readonly DoctrineListBuilderFactoryInterface $listBuilderFactory,
         private readonly FieldDescriptorFactoryInterface $fieldDescriptorFactory,
+        private readonly SecurityCheckerInterface $securityChecker,
     ) {
     }
 
-    #[IsGranted('ROLE_USER')]
     public function cgetAction(): JsonResponse
     {
+        $this->assertPermission(PermissionTypes::VIEW);
+
         $fieldDescriptors = $this->fieldDescriptorFactory->getFieldDescriptors(GoogleReview::RESOURCE_KEY);
 
         $listBuilder = $this->listBuilderFactory->create($fieldDescriptors['id']->getEntityName());
@@ -47,9 +51,10 @@ class GoogleReviewController extends AbstractController
         return $this->json($representation->toArray());
     }
 
-    #[IsGranted('ROLE_USER')]
     public function getAction(int $id): JsonResponse
     {
+        $this->assertPermission(PermissionTypes::VIEW);
+
         $review = $this->repository->find($id);
 
         if (!$review instanceof GoogleReview) {
@@ -59,9 +64,10 @@ class GoogleReviewController extends AbstractController
         return $this->json($review->mapToArray());
     }
 
-    #[IsGranted('ROLE_USER')]
     public function putAction(int $id, Request $request): JsonResponse
     {
+        $this->assertPermission(PermissionTypes::EDIT);
+
         $review = $this->repository->find($id);
 
         if (!$review instanceof GoogleReview) {
@@ -79,5 +85,12 @@ class GoogleReviewController extends AbstractController
         $this->repository->save($review);
 
         return $this->json($review->mapToArray());
+    }
+
+    private function assertPermission(string $permissionType): void
+    {
+        if (!$this->securityChecker->hasPermission(GoogleReview::SECURITY_CONTEXT, $permissionType)) {
+            throw new AccessDeniedException();
+        }
     }
 }
