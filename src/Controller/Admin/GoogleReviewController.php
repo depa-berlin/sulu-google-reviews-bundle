@@ -67,7 +67,12 @@ class GoogleReviewController extends AbstractController
             throw $this->createNotFoundException(\sprintf('Google Review with id "%d" not found.', $id));
         }
 
-        return $this->json($review->mapToArray());
+        $data = $review->mapToArray();
+        $data['createdAtTimestamp'] = $data['createdAtTimestamp'] > 0
+            ? \date('d.m.Y', $data['createdAtTimestamp'])
+            : '';
+
+        return $this->json($data);
     }
 
     public function putAction(int $id, Request $request): JsonResponse
