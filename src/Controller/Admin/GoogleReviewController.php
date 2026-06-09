@@ -68,7 +68,12 @@ class GoogleReviewController extends AbstractController
             throw $this->createNotFoundException(\sprintf('Google Review with id "%d" not found.', $id));
         }
 
-        $data = $request->toArray();
+        try {
+            $data = $request->toArray();
+        } catch (\JsonException) {
+            return $this->json(['error' => 'Invalid JSON body'], Response::HTTP_BAD_REQUEST);
+        }
+
         $review->setBlocked((bool) ($data['blocked'] ?? false));
 
         $this->repository->save($review);

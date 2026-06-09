@@ -24,7 +24,7 @@
                                     >
                                 {% else %}
                                     <span class="google-reviews__avatar google-reviews__avatar--fallback">
-                                        {{ review.authorName|first|upper }}
+                                        {{ review.authorName is not empty ? review.authorName|first|upper : '?' }}
                                     </span>
                                 {% endif %}
                                 <span class="google-reviews__author-name">{{ review.authorName }}</span>

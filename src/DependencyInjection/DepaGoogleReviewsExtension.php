@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Depa\SuluGoogleReviewsBundle\DependencyInjection;
 
+use Depa\SuluGoogleReviewsBundle\Entity\GoogleReview;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Extension\Extension;
@@ -29,7 +30,7 @@ class DepaGoogleReviewsExtension extends Extension implements PrependExtensionIn
                     'directories' => [__DIR__ . '/../../Resources/config/forms'],
                 ],
                 'resources' => [
-                    'google_reviews' => [
+                    GoogleReview::RESOURCE_KEY => [
                         'routes' => [
                             'list'   => 'depa.google_reviews.cget',
                             'detail' => 'depa.google_reviews.get',

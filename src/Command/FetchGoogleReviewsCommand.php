@@ -11,6 +11,7 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
+use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 #[AsCommand(
@@ -34,15 +35,42 @@ class FetchGoogleReviewsCommand extends Command
     {
         $io = new SymfonyStyle($input, $output);
 
-        $response = $this->httpClient->request('GET', self::API_URL, [
-            'query' => [
-                'place_id' => $this->placeId,
-                'fields'   => 'reviews',
-                'key'      => $this->apiKey,
-            ],
-        ]);
+        if ('' === $this->apiKey || '' === $this->placeId) {
+            $io->error('GOOGLE_PLACES_API_KEY und GOOGLE_PLACE_ID müssen in .env.local gesetzt sein.');
 
-        $data = $response->toArray();
+            return Command::FAILURE;
+        }
+
+        try {
+            $response = $this->httpClient->request('GET', self::API_URL, [
+                'query' => [
+                    'place_id' => $this->placeId,
+                    'fields'   => 'reviews',
+                    'key'      => $this->apiKey,
+                ],
+            ]);
+
+            $data = $response->toArray();
+        } catch (TransportExceptionInterface $e) {
+            $io->error('Google Places API nicht erreichbar: ' . $e->getMessage());
+
+            return Command::FAILURE;
+        } catch (\Exception $e) {
+            $io->error('Fehler beim Abrufen der API-Antwort: ' . $e->getMessage());
+
+            return Command::FAILURE;
+        }
+
+        $status = $data['status'] ?? 'UNKNOWN';
+        if ('OK' !== $status) {
+            $io->error(\sprintf(
+                'Google API returned status "%s": %s',
+                $status,
+                $data['error_message'] ?? 'keine Fehlermeldung'
+            ));
+
+            return Command::FAILURE;
+        }
 
         if (!isset($data['result']['reviews'])) {
             $io->warning('Keine Bewertungen in der API-Antwort gefunden.');
