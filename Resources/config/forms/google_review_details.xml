@@ -71,6 +71,17 @@
                         <param name="type" value="toggler"/>
                     </params>
                 </property>
+
+                <property name="sortOrder" type="number" colspan="12">
+                    <meta>
+                        <title lang="de">Reihenfolge (für eigene Sortierung)</title>
+                        <title lang="en">Sort Order (for custom sorting)</title>
+                    </meta>
+                    <params>
+                        <param name="min" value="0"/>
+                        <param name="step" value="1"/>
+                    </params>
+                </property>
             </properties>
         </section>
     </properties>

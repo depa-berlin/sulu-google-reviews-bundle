@@ -1,5 +1,5 @@
 {% block google_reviews %}
-    {% set reviews = get_stored_google_reviews(content.limit|default(3)|abs) %}
+    {% set reviews = get_stored_google_reviews(content.limit|default(3)|abs, content.sort|default('date')) %}
     <section class="google-reviews">
         {% if content.title is defined and content.title %}
             <h2 class="google-reviews__title">{{ content.title }}</h2>

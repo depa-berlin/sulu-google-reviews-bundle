@@ -88,6 +88,14 @@ class GoogleReviewController extends AbstractController
 
         $review->setBlocked((bool) ($data['blocked'] ?? false));
 
+        $newSortOrder = (int) ($data['sortOrder'] ?? 0);
+        if ($newSortOrder > 0 && $newSortOrder !== $review->getSortOrder()
+            && $this->repository->isSortOrderTaken($newSortOrder, $review->getId())
+        ) {
+            $this->repository->shiftSortOrderFrom($newSortOrder, $review->getId());
+        }
+        $review->setSortOrder($newSortOrder);
+
         $this->repository->save($review);
 
         return $this->json($review->mapToArray());

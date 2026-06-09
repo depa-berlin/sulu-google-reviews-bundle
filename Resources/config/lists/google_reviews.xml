@@ -29,5 +29,10 @@
             <entity-name>Depa\SuluGoogleReviewsBundle\Entity\GoogleReview</entity-name>
             <transformer type="bool"/>
         </property>
+
+        <property name="sortOrder" visibility="always" translation="Reihenfolge">
+            <field-name>sortOrder</field-name>
+            <entity-name>Depa\SuluGoogleReviewsBundle\Entity\GoogleReview</entity-name>
+        </property>
     </properties>
 </list>

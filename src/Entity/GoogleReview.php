@@ -41,6 +41,9 @@ class GoogleReview
     #[ORM\Column(type: 'boolean')]
     private bool $blocked = false;
 
+    #[ORM\Column(type: 'integer')]
+    private int $sortOrder = 0;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -130,6 +133,18 @@ class GoogleReview
         return $this;
     }
 
+    public function getSortOrder(): int
+    {
+        return $this->sortOrder;
+    }
+
+    public function setSortOrder(int $sortOrder): static
+    {
+        $this->sortOrder = $sortOrder;
+
+        return $this;
+    }
+
     public function mapToArray(): array
     {
         return [
@@ -141,6 +156,7 @@ class GoogleReview
             'createdAtTimestamp'      => $this->createdAtTimestamp,
             'relativeTimeDescription' => $this->relativeTimeDescription,
             'blocked'                 => $this->blocked,
+            'sortOrder'               => $this->sortOrder,
         ];
     }
 }

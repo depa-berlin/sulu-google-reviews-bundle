@@ -15,8 +15,8 @@ class GoogleReviewsTwigExtension
     }
 
     #[AsTwigFunction(name: 'get_stored_google_reviews')]
-    public function getStoredGoogleReviews(int $limit = 5): array
+    public function getStoredGoogleReviews(int $limit = 5, string $sort = GoogleReviewRepository::SORT_DATE): array
     {
-        return $this->repository->findTopReviews($limit);
+        return $this->repository->findTopReviews($limit, $sort);
     }
 }
