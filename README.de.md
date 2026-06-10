@@ -23,29 +23,13 @@ Symfony-Bundle für Sulu CMS 3, das Google-Bewertungen über die Places API abru
 
 ## Installation
 
-### 1. Path-Repository in `composer.json` eintragen
-
-Das Bundle liegt lokal unter `packages/sulu-google-reviews-bundle/` im Hauptprojekt:
-
-```json
-"repositories": [
-    {
-        "type": "path",
-        "url": "./packages/sulu-google-reviews-bundle",
-        "options": {
-            "symlink": true
-        }
-    }
-]
-```
-
-### 2. Bundle per Composer installieren
+### 1. Bundle per Composer installieren
 
 ```bash
-composer require depa/sulu-google-reviews-bundle:@dev
+composer require depa-berlin/sulu-google-reviews-bundle
 ```
 
-### 3. Bundle registrieren
+### 2. Bundle registrieren
 
 In `config/bundles.php` hinzufügen:
 
@@ -74,16 +58,15 @@ GOOGLE_PLACE_ID=ChIJ...
 
 Die `Place ID` einer Location findet man in der [Google Maps Platform](https://developers.google.com/maps/documentation/places/web-service/place-id).
 
-### 6. Datenbank-Migration ausführen
+### 5. Datenbank-Migration ausführen
 
 ```bash
-bin/adminconsole doctrine:migrations:diff
 bin/adminconsole doctrine:migrations:migrate
 ```
 
 Dies legt die Tabelle `sulu_google_review` an.
 
-### 7. Cache leeren
+### 6. Cache leeren
 
 ```bash
 bin/adminconsole cache:clear
