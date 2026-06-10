@@ -1,0 +1,30 @@
+services:
+    _defaults:
+        autowire: true
+        autoconfigure: true
+        public: false
+
+    Depa\SuluGoogleReviewsBundle\:
+        resource: '../../src/'
+        exclude:
+            - '../../src/Entity/'
+            - '../../src/DependencyInjection/'
+            - '../../src/DepaGoogleReviewsBundle.php'
+
+    Depa\SuluGoogleReviewsBundle\Admin\GoogleReviewsAdmin:
+        tags:
+            - { name: sulu.admin }
+            - { name: sulu.context, context: admin }
+
+    Depa\SuluGoogleReviewsBundle\Controller\Admin\GoogleReviewController:
+        public: true
+        tags:
+            - { name: sulu.context, context: admin }
+            - { name: controller.service_arguments }
+
+    Depa\SuluGoogleReviewsBundle\Command\FetchGoogleReviewsCommand:
+        arguments:
+            $apiKey: '%env(GOOGLE_PLACES_API_KEY)%'
+            $placeId: '%env(GOOGLE_PLACE_ID)%'
+        tags:
+            - { name: console.command }

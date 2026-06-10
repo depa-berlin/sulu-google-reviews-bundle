@@ -1,0 +1,88 @@
+<?xml version="1.0" ?>
+<form xmlns="http://schemas.sulu.io/template/template"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="http://schemas.sulu.io/template/template http://schemas.sulu.io/template/form-1.0.xsd">
+
+    <key>google_review_details</key>
+
+    <properties>
+        <section name="review">
+            <meta>
+                <title lang="de">Bewertung (automatisch von Google importiert)</title>
+                <title lang="en">Review (automatically imported from Google)</title>
+            </meta>
+            <properties>
+                <property name="authorName" type="text_line" colspan="12">
+                    <meta>
+                        <title lang="de">Autor</title>
+                        <title lang="en">Author</title>
+                    </meta>
+                </property>
+
+                <property name="rating" type="text_line" colspan="6">
+                    <meta>
+                        <title lang="de">Bewertung (Sterne)</title>
+                        <title lang="en">Rating (Stars)</title>
+                    </meta>
+                </property>
+
+                <property name="createdAtTimestamp" type="text_line" colspan="6">
+                    <meta>
+                        <title lang="de">Datum</title>
+                        <title lang="en">Date</title>
+                    </meta>
+                </property>
+
+                <property name="relativeTimeDescription" type="text_line" colspan="12">
+                    <meta>
+                        <title lang="de">Zeitangabe (Google)</title>
+                        <title lang="en">Time Description (Google)</title>
+                    </meta>
+                </property>
+
+                <property name="text" type="text_area" colspan="12">
+                    <meta>
+                        <title lang="de">Bewertungstext</title>
+                        <title lang="en">Review Text</title>
+                    </meta>
+                </property>
+
+                <property name="profilePhotoUrl" type="text_line" colspan="12">
+                    <meta>
+                        <title lang="de">Profilbild-URL</title>
+                        <title lang="en">Profile Photo URL</title>
+                    </meta>
+                </property>
+            </properties>
+        </section>
+
+        <section name="moderation">
+            <meta>
+                <title lang="de">Moderation &amp; Darstellung</title>
+                <title lang="en">Moderation &amp; Display</title>
+            </meta>
+            <properties>
+                <property name="blocked" type="checkbox" colspan="12">
+                    <meta>
+                        <title lang="de">Bewertung sperren (wird im Frontend nicht angezeigt)</title>
+                        <title lang="en">Block Review (will not be shown on the website)</title>
+                    </meta>
+                    <params>
+                        <param name="type" value="toggler"/>
+                    </params>
+                </property>
+
+                <property name="sortOrder" type="number" colspan="12">
+                    <meta>
+                        <title lang="de">Reihenfolge (für eigene Sortierung, 0 = keine Priorität)</title>
+                        <title lang="en">Sort Order (for custom sorting, 0 = no priority)</title>
+                    </meta>
+                    <params>
+                        <param name="min" value="0"/>
+                        <param name="step" value="1"/>
+                    </params>
+                </property>
+            </properties>
+        </section>
+    </properties>
+</form>

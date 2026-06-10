@@ -1,0 +1,55 @@
+{% block google_reviews %}
+    {% set reviews = get_stored_google_reviews(content.limit|default(3)|abs, content.sort|default('date')) %}
+    <section class="google-reviews">
+        {% if content.title is defined and content.title %}
+            <h2 class="google-reviews__title">{{ content.title }}</h2>
+        {% endif %}
+
+        {% if reviews is empty %}
+            <p class="google-reviews__empty">Aktuell sind keine Bewertungen verfügbar.</p>
+        {% else %}
+            <div class="row">
+                {% for review in reviews %}
+                    <div class="col-md-4">
+                        <div class="google-reviews__card">
+                            <div class="google-reviews__author">
+                                {% if review.profilePhotoUrl %}
+                                    <img
+                                        class="google-reviews__avatar"
+                                        src="{{ review.profilePhotoUrl }}"
+                                        alt="{{ review.authorName }}"
+                                        loading="lazy"
+                                        width="40"
+                                        height="40"
+                                    >
+                                {% else %}
+                                    <span class="google-reviews__avatar google-reviews__avatar--fallback">
+                                        {{ review.authorName is not empty ? review.authorName|first|upper : '?' }}
+                                    </span>
+                                {% endif %}
+                                <span class="google-reviews__author-name">{{ review.authorName }}</span>
+                            </div>
+
+                            <div class="google-reviews__rating" aria-label="{{ review.rating }} von 5 Sternen">
+                                {% for i in 1..5 %}
+                                    <span class="google-reviews__star{% if i <= review.rating %} google-reviews__star--filled{% endif %}">
+                                        &#9733;
+                                    </span>
+                                {% endfor %}
+                            </div>
+
+                            <p class="google-reviews__text">{{ review.text }}</p>
+
+                            <time
+                                class="google-reviews__time"
+                                datetime="{{ review.createdAtTimestamp|date('Y-m-d') }}"
+                            >
+                                {{ review.relativeTimeDescription }}
+                            </time>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    </section>
+{% endblock %}

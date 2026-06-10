@@ -1,0 +1,20 @@
+depa.google_reviews.cget:
+    path: /google-reviews
+    methods: [GET]
+    defaults:
+        _controller: 'Depa\SuluGoogleReviewsBundle\Controller\Admin\GoogleReviewController::cgetAction'
+        _format: json
+
+depa.google_reviews.get:
+    path: /google-reviews/{id}
+    methods: [GET]
+    defaults:
+        _controller: 'Depa\SuluGoogleReviewsBundle\Controller\Admin\GoogleReviewController::getAction'
+        _format: json
+
+depa.google_reviews.put:
+    path: /google-reviews/{id}
+    methods: [PUT]
+    defaults:
+        _controller: 'Depa\SuluGoogleReviewsBundle\Controller\Admin\GoogleReviewController::putAction'
+        _format: json
