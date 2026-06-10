@@ -227,6 +227,19 @@ Das Template verwendet **Bootstrap 5** für das Grid-Layout und folgt der **BEM-
 Das Template befindet sich unter:
 `Resources/views/includes/blocks/block--google-reviews.html.twig`
 
+### Template anpassen
+
+Wenn das Bundle per Composer installiert ist, kannst du das Template im Hauptprojekt überschreiben:
+
+1. **Erstelle die Datei:**
+   ```
+   templates/includes/blocks/block--google-reviews.html.twig
+   ```
+
+2. **Kopiere den Inhalt vom Bundle** und passe ihn an (CSS-Klassen, HTML-Struktur, etc.)
+
+Twig sucht Templates zuerst im Hauptprojekt, dann in den Bundles — deine Version wird automatisch verwendet.
+
 ---
 
 ## Architektur-Übersicht
