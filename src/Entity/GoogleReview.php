@@ -145,6 +145,9 @@ class GoogleReview
         return $this;
     }
 
+    /**
+     * @return array{id: int|null, authorName: string, profilePhotoUrl: string|null, rating: int, text: string, createdAtTimestamp: int, relativeTimeDescription: string, blocked: bool, sortOrder: int}
+     */
     public function mapToArray(): array
     {
         return [

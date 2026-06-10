@@ -1,0 +1,19 @@
+parameters:
+    reportUnmatchedIgnoredErrors: false
+    ignoreErrors:
+        # Doctrine EntityRepository::getEntityManager() is protected but required for flushing
+        -
+            message: '#Call to protected method getEntityManager\(\)#'
+            path: src/Command/FetchGoogleReviewsCommand.php
+        # Sulu FieldDescriptorInterface API limitation
+        -
+            message: '#Call to an undefined method.*getEntityName#'
+            path: src/Controller/Admin/GoogleReviewController.php
+        # Doctrine auto-assigns $id via GeneratedValue, never explicitly set to int
+        -
+            message: '#Property.*\$id.*is never assigned int#'
+            path: src/Entity/GoogleReview.php
+        # toArray() can throw JsonException but not always detectable by PHPStan
+        -
+            message: '#Dead catch#'
+            path: src/Controller/Admin/GoogleReviewController.php
