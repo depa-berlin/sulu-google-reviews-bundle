@@ -113,7 +113,11 @@ class FetchGoogleReviewsCommand extends Command
             ++$imported;
         }
 
-        $this->repository->getEntityManager()->flush();
+        if ($imported > 0) {
+            /** @var \Doctrine\ORM\EntityManager $em */
+            $em = $this->repository->getEntityManager();
+            $em->flush();
+        }
 
         $io->success(\sprintf('Importiert: %d, Übersprungen: %d', $imported, $skipped));
 

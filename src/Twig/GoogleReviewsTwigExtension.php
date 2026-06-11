@@ -14,6 +14,9 @@ class GoogleReviewsTwigExtension
     ) {
     }
 
+    /**
+     * @return array<int, \Depa\SuluGoogleReviewsBundle\Entity\GoogleReview>
+     */
     #[AsTwigFunction(name: 'get_stored_google_reviews')]
     public function getStoredGoogleReviews(int $limit = 5, string $sort = GoogleReviewRepository::SORT_DATE): array
     {

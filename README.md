@@ -6,11 +6,13 @@
 ![GitHub Tag](https://img.shields.io/github/v/tag/depa-berlin/sulu-google-reviews-bundle)
 ![Supports Sulu 3.0 or later](https://img.shields.io/badge/Sulu->=3.0-0088cc?color=00b2df)
 
-Symfony-Bundle für Sulu CMS 3, das Google-Bewertungen über die Places API abruft, gefiltert (≥ 4 Sterne) in der eigenen Datenbank speichert und eine native Sulu-Admin-Oberfläche zur Moderation bereitstellt. Die Ausgabe im Frontend erfolgt über einen flexiblen Sulu-Block.
+Symfony bundle for Sulu CMS 3 that fetches Google Places reviews via API, filters by rating (≥ 4 stars), stores them in a dedicated database table with duplicate prevention, and provides a native Sulu admin interface for moderation. Frontend output via flexible Sulu block.
+
+**Available Languages:** [🇩🇪 Deutsch](README.de.md)
 
 ---
 
-## Voraussetzungen
+## Requirements
 
 - PHP 8.2+
 - Sulu CMS 3.0+
@@ -21,39 +23,23 @@ Symfony-Bundle für Sulu CMS 3, das Google-Bewertungen über die Places API abru
 
 ## Installation
 
-### 1. Path-Repository in `composer.json` eintragen
-
-Das Bundle liegt lokal unter `packages/sulu-google-reviews-bundle/` im Hauptprojekt:
-
-```json
-"repositories": [
-    {
-        "type": "path",
-        "url": "./packages/sulu-google-reviews-bundle",
-        "options": {
-            "symlink": true
-        }
-    }
-]
-```
-
-### 2. Bundle per Composer installieren
+### 1. Install via Composer
 
 ```bash
-composer require depa/sulu-google-reviews-bundle:@dev
+composer require depa-berlin/sulu-google-reviews-bundle
 ```
 
-### 3. Bundle registrieren
+### 2. Register bundle
 
-In `config/bundles.php` hinzufügen:
+Add to `config/bundles.php`:
 
 ```php
 Depa\SuluGoogleReviewsBundle\DepaGoogleReviewsBundle::class => ['all' => true],
 ```
 
-### 4. Admin-Routen importieren
+### 4. Import admin routes
 
-In `config/routes/routes_admin.yaml` eintragen:
+Add to `config/routes/routes_admin.yaml`:
 
 ```yaml
 DepaGoogleReviewsBundle:
@@ -61,27 +47,26 @@ DepaGoogleReviewsBundle:
     prefix: /admin/api
 ```
 
-### 5. Umgebungsvariablen setzen
+### 5. Set environment variables
 
-In `.env.local` (niemals committen):
+In `.env.local` (never commit):
 
 ```dotenv
 GOOGLE_PLACES_API_KEY=AIzaSy...
 GOOGLE_PLACE_ID=ChIJ...
 ```
 
-Die `Place ID` einer Location findet man in der [Google Maps Platform](https://developers.google.com/maps/documentation/places/web-service/place-id).
+Find your `Place ID` on [Google Maps Platform](https://developers.google.com/maps/documentation/places/web-service/place-id).
 
-### 6. Datenbank-Migration ausführen
+### 6. Run database migrations
 
 ```bash
-bin/adminconsole doctrine:migrations:diff
 bin/adminconsole doctrine:migrations:migrate
 ```
 
-Dies legt die Tabelle `sulu_google_review` an.
+Creates the `sulu_google_review` table.
 
-### 7. Cache leeren
+### 7. Clear cache
 
 ```bash
 bin/adminconsole cache:clear
@@ -89,156 +74,169 @@ bin/adminconsole cache:clear
 
 ---
 
-## Sulu-Block einbinden
+## Integrating the Sulu Block
 
-### Block-Typ in einer Section-Vorlage registrieren
+### Register block type in section template
 
-Den Block in `config/templates/blocks/block--section.xml` unter `<types>` eintragen:
+Add to `config/templates/blocks/block--section.xml` under `<types>`:
 
 ```xml
 <type ref="block--google-reviews"/>
 ```
 
-Der Block „Google Bewertungen" steht danach im Sulu-Admin-Editor beim Hinzufügen von Sub-Blöcken innerhalb einer Section zur Verfügung.
+The "Google Reviews" block will now appear in the Sulu admin editor when adding sub-blocks within a section.
 
-### Block-Felder im Editor
+### Block fields in editor
 
-| Feld | Beschreibung |
+| Field | Description |
 |---|---|
-| **Titel** | Optionale Überschrift über den Bewertungen |
-| **Anzahl** | Wie viele Bewertungen angezeigt werden (Standard: 3) |
-| **Sortierung** | Sortierungsmodus (siehe unten) |
+| **Title** | Optional heading above reviews |
+| **Limit** | Number of reviews to display (default: 3) |
+| **Sort** | Sort mode (see below) |
 
-#### Sortierungsmodi
+#### Sort modes
 
-| Wert | Verhalten |
+| Value | Behavior |
 |---|---|
-| `Nach Datum` | Neueste Bewertungen zuerst |
-| `Nach Bewertung` | Höchste Sternebewertung zuerst |
-| `Eigene Reihenfolge` | Sortiert nach dem „Reihenfolge"-Feld der einzelnen Bewertungen |
+| `By Date` | Newest reviews first |
+| `By Rating` | Highest star rating first |
+| `Custom Order` | Sorted by the "Sort Order" field of individual reviews |
 
 ---
 
-## Bewertungen importieren
+## Fetching reviews
 
-### Manueller Import
+### Manual fetch
 
 ```bash
 bin/adminconsole sulu:google-reviews:fetch
 ```
 
-### Automatisierter Import per Cronjob
+### Automated fetch via cronjob
 
 ```cron
 0 3 * * * /path/to/project/bin/adminconsole sulu:google-reviews:fetch
 ```
 
-Der Command importiert nur neue Bewertungen (≥ 4 Sterne). Bereits vorhandene Einträge werden übersprungen.
+The command imports only new reviews (≥ 4 stars). Existing entries are skipped.
 
 ---
 
-## Moderation im Sulu-Admin
+## Moderation in Sulu Admin
 
-Im Sulu-Backend erscheint nach der Installation der Menüpunkt **„Google Bewertungen"** (Icon: Kommentar).
+After installation, the menu item **"Google Reviews"** appears in the Sulu backend (icon: comment).
 
-### Listenansicht
+### List view
 
-Zeigt alle importierten Bewertungen mit Autor, Sternebewertung, Datum, Sperrstatus und Reihenfolge.
+Shows all imported reviews with author, star rating, date, block status, and sort order.
 
-### Detailansicht
+### Detail view
 
-| Bereich | Felder | Bearbeitbar |
+| Section | Fields | Editable |
 |---|---|---|
-| **Bewertung** (von Google importiert) | Autor, Sterne, Datum, Zeitangabe, Text, Profilbild-URL | Nein |
-| **Moderation & Darstellung** | Bewertung sperren, Reihenfolge | Ja |
+| **Review** (imported from Google) | Author, stars, date, relative time, text, profile photo URL | No |
+| **Moderation & Display** | Block review, sort order | Yes |
 
-#### Bewertung sperren
+#### Block review
 
-Gesperrte Bewertungen werden im Frontend nicht angezeigt und tauchen in `get_stored_google_reviews()` nicht auf.
+Blocked reviews won't appear on the frontend and are excluded from `get_stored_google_reviews()` results.
 
-#### Eigene Reihenfolge
+#### Custom sort order
 
-Das Feld **Reihenfolge** wird verwendet, wenn im Block die Sortierung „Eigene Reihenfolge" gewählt ist.
+The **Sort Order** field is used when the block's sort mode is set to "Custom Order".
 
-- `0` = keine Priorität (wird bei Gleichstand nach Datum sortiert)
-- `1`, `2`, `3`, … = aufsteigende Anzeigereihenfolge
+- `0` = no priority (sorted by date on tie)
+- `1`, `2`, `3`, … = ascending display order
 
-Wird eine bereits vergebene Positions-Nummer eingetragen, rücken alle anderen Einträge an dieser Stelle automatisch um eine Position nach hinten.
+When assigning an already-taken sort position, all other entries at that position and below are automatically incremented.
 
 ---
 
-## Twig-Funktion (direkte Nutzung)
+## Twig function (direct usage)
 
-Das Bundle stellt die Twig-Funktion `get_stored_google_reviews()` bereit, die unabhängig vom Sulu-Block überall in Templates genutzt werden kann:
+The bundle provides the `get_stored_google_reviews()` Twig function for use anywhere in templates:
 
 ```twig
 {% set reviews = get_stored_google_reviews(limit, sort) %}
 ```
 
-| Parameter | Typ | Standard | Mögliche Werte |
+| Parameter | Type | Default | Possible Values |
 |---|---|---|---|
-| `limit` | `int` | `5` | Beliebige positive Ganzzahl |
+| `limit` | `int` | `5` | Any positive integer |
 | `sort` | `string` | `'date'` | `'date'`, `'rating'`, `'custom'` |
 
-**Beispiel:**
+**Example:**
 
 ```twig
 {% for review in get_stored_google_reviews(3, 'rating') %}
-    <p>{{ review.authorName }}: {{ review.rating }} Sterne</p>
+    <p>{{ review.authorName }}: {{ review.rating }} stars</p>
     <p>{{ review.text }}</p>
 {% endfor %}
 ```
 
-### Verfügbare Review-Eigenschaften
+### Available review properties
 
-| Eigenschaft | Typ | Beschreibung |
+| Property | Type | Description |
 |---|---|---|
-| `authorName` | `string` | Name des Rezensenten |
-| `profilePhotoUrl` | `string\|null` | URL des Google-Profilbilds |
-| `rating` | `int` | Sternebewertung (4 oder 5) |
-| `text` | `string` | Bewertungstext |
-| `createdAtTimestamp` | `int` | Erstellungsdatum als Unix-Timestamp |
-| `relativeTimeDescription` | `string` | Zeitangabe von Google (z. B. „vor 3 Monaten") |
-| `blocked` | `bool` | Sperrstatus (bei direktem Repository-Zugriff) |
-| `sortOrder` | `int` | Eigene Sortierungsposition |
+| `authorName` | `string` | Reviewer name |
+| `profilePhotoUrl` | `string\|null` | URL to Google profile photo |
+| `rating` | `int` | Star rating (4 or 5) |
+| `text` | `string` | Review text |
+| `createdAtTimestamp` | `int` | Created date as Unix timestamp |
+| `relativeTimeDescription` | `string` | Relative time from Google (e.g., "3 months ago") |
+| `blocked` | `bool` | Block status (when accessing repository directly) |
+| `sortOrder` | `int` | Custom sort position |
 
 ---
 
-## Frontend-Styling
+## Frontend styling
 
-Das Template verwendet **Bootstrap 5** für das Grid-Layout und folgt der **BEM-Nomenklatur**:
+The template uses **Bootstrap 5** for grid layout and follows **BEM naming conventions**:
 
-| BEM-Klasse | Element |
+| BEM Class | Element |
 |---|---|
 | `.google-reviews` | Wrapper `<section>` |
-| `.google-reviews__title` | Optionale Überschrift |
-| `.google-reviews__card` | Einzelne Bewertungskarte |
-| `.google-reviews__author` | Autor-Bereich |
-| `.google-reviews__avatar` | Profilbild |
-| `.google-reviews__avatar--fallback` | Initial-Fallback ohne Bild |
-| `.google-reviews__author-name` | Autorenname |
-| `.google-reviews__rating` | Sterne-Container |
-| `.google-reviews__star` | Einzelner Stern |
-| `.google-reviews__star--filled` | Gefüllter Stern |
-| `.google-reviews__text` | Bewertungstext |
-| `.google-reviews__time` | Zeitangabe |
-| `.google-reviews__empty` | Fallback-Nachricht ohne Bewertungen |
+| `.google-reviews__title` | Optional heading |
+| `.google-reviews__card` | Individual review card |
+| `.google-reviews__author` | Author area |
+| `.google-reviews__avatar` | Profile photo |
+| `.google-reviews__avatar--fallback` | Initial fallback without photo |
+| `.google-reviews__author-name` | Author name |
+| `.google-reviews__rating` | Stars container |
+| `.google-reviews__star` | Single star |
+| `.google-reviews__star--filled` | Filled star |
+| `.google-reviews__text` | Review text |
+| `.google-reviews__time` | Relative time |
+| `.google-reviews__empty` | Fallback message when no reviews |
 
-Das Template befindet sich unter:
+Template location:
 `Resources/views/includes/blocks/block--google-reviews.html.twig`
+
+### Customizing the template
+
+Once the bundle is installed via Composer, override the template in your main project:
+
+1. **Create the file:**
+   ```
+   templates/includes/blocks/block--google-reviews.html.twig
+   ```
+
+2. **Copy the content from the bundle** and customize (CSS classes, HTML structure, etc.)
+
+Twig searches for templates first in the main project, then in bundles — your version will be used automatically.
 
 ---
 
-## Architektur-Übersicht
+## Architecture overview
 
 ```
 packages/sulu-google-reviews-bundle/
 ├── src/
-│   ├── Admin/GoogleReviewsAdmin.php          # Sulu-Navigation & Views
-│   ├── Command/FetchGoogleReviewsCommand.php  # Import-Command
+│   ├── Admin/GoogleReviewsAdmin.php          # Sulu navigation & views
+│   ├── Command/FetchGoogleReviewsCommand.php  # Import command
 │   ├── Controller/Admin/GoogleReviewController.php
 │   ├── DependencyInjection/
-│   │   ├── DepaGoogleReviewsExtension.php     # Auto-Konfiguration per prepend
+│   │   ├── DepaGoogleReviewsExtension.php     # Auto-configuration via prepend
 │   │   └── Configuration.php
 │   ├── Entity/GoogleReview.php
 │   ├── Repository/GoogleReviewRepository.php
@@ -254,9 +252,9 @@ packages/sulu-google-reviews-bundle/
             └── block--google-reviews.html.twig
 ```
 
-Die Bundle-Extension registriert automatisch per `PrependExtensionInterface`:
-- Sulu Admin: Listen- und Formular-Verzeichnisse, Resource-Routen
-- Doctrine ORM: Entity-Mapping
-- Twig: Views-Verzeichnis
+The bundle extension automatically registers via `PrependExtensionInterface`:
+- Sulu Admin: list and form directories, resource routes
+- Doctrine ORM: entity mapping
+- Twig: views directory
 
-Dadurch sind **keine manuellen Einträge** in `sulu_admin.yaml` oder `twig.yaml` erforderlich.
+**No manual entries** in `sulu_admin.yaml` or `twig.yaml` required.

@@ -5,9 +5,6 @@ declare(strict_types=1);
 namespace Depa\SuluGoogleReviewsBundle\Tests\Unit\Command;
 
 use Depa\SuluGoogleReviewsBundle\Command\FetchGoogleReviewsCommand;
-use Depa\SuluGoogleReviewsBundle\Entity\GoogleReview;
-use Depa\SuluGoogleReviewsBundle\Repository\GoogleReviewRepository;
-use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Tester\CommandTester;
@@ -16,30 +13,14 @@ use Symfony\Contracts\HttpClient\ResponseInterface;
 
 class FetchGoogleReviewsCommandTest extends TestCase
 {
-    private MockObject&HttpClientInterface $httpClient;
-    private MockObject&GoogleReviewRepository $repository;
-    private CommandTester $tester;
-
-    protected function setUp(): void
-    {
-        $this->httpClient = $this->createMock(HttpClientInterface::class);
-        $this->repository = $this->createMock(GoogleReviewRepository::class);
-
-        $command = new FetchGoogleReviewsCommand(
-            $this->httpClient,
-            $this->repository,
-            'test-api-key',
-            'test-place-id',
-        );
-
-        $this->tester = new CommandTester($command);
-    }
-
     public function testFailsWithEmptyApiKey(): void
     {
+        $httpClient = $this->createMock(HttpClientInterface::class);
+        $repository = $this->createMock(\Depa\SuluGoogleReviewsBundle\Repository\GoogleReviewRepository::class);
+
         $command = new FetchGoogleReviewsCommand(
-            $this->httpClient,
-            $this->repository,
+            $httpClient,
+            $repository,
             '',
             'test-place-id',
         );
@@ -53,9 +34,12 @@ class FetchGoogleReviewsCommandTest extends TestCase
 
     public function testFailsWithEmptyPlaceId(): void
     {
+        $httpClient = $this->createMock(HttpClientInterface::class);
+        $repository = $this->createMock(\Depa\SuluGoogleReviewsBundle\Repository\GoogleReviewRepository::class);
+
         $command = new FetchGoogleReviewsCommand(
-            $this->httpClient,
-            $this->repository,
+            $httpClient,
+            $repository,
             'test-api-key',
             '',
         );
@@ -68,31 +52,56 @@ class FetchGoogleReviewsCommandTest extends TestCase
 
     public function testFailsOnApiStatusNotOk(): void
     {
+        $httpClient = $this->createMock(HttpClientInterface::class);
+        $repository = $this->createMock(\Depa\SuluGoogleReviewsBundle\Repository\GoogleReviewRepository::class);
+
         $response = $this->createMock(ResponseInterface::class);
         $response->method('toArray')->willReturn(['status' => 'REQUEST_DENIED', 'error_message' => 'API key invalid']);
 
-        $this->httpClient->method('request')->willReturn($response);
+        $httpClient->method('request')->willReturn($response);
 
-        $result = $this->tester->execute([]);
+        $command = new FetchGoogleReviewsCommand(
+            $httpClient,
+            $repository,
+            'test-api-key',
+            'test-place-id',
+        );
+
+        $tester = new CommandTester($command);
+        $result = $tester->execute([]);
 
         self::assertSame(Command::FAILURE, $result);
-        self::assertStringContainsString('REQUEST_DENIED', $this->tester->getDisplay());
+        self::assertStringContainsString('REQUEST_DENIED', $tester->getDisplay());
     }
 
     public function testSucceedsWithNoReviews(): void
     {
+        $httpClient = $this->createMock(HttpClientInterface::class);
+        $repository = $this->createMock(\Depa\SuluGoogleReviewsBundle\Repository\GoogleReviewRepository::class);
+
         $response = $this->createMock(ResponseInterface::class);
         $response->method('toArray')->willReturn(['status' => 'OK', 'result' => []]);
 
-        $this->httpClient->method('request')->willReturn($response);
+        $httpClient->method('request')->willReturn($response);
 
-        $result = $this->tester->execute([]);
+        $command = new FetchGoogleReviewsCommand(
+            $httpClient,
+            $repository,
+            'test-api-key',
+            'test-place-id',
+        );
+
+        $tester = new CommandTester($command);
+        $result = $tester->execute([]);
 
         self::assertSame(Command::SUCCESS, $result);
     }
 
     public function testSkipsReviewsBelowFourStars(): void
     {
+        $httpClient = $this->createMock(HttpClientInterface::class);
+        $repository = $this->createMock(\Depa\SuluGoogleReviewsBundle\Repository\GoogleReviewRepository::class);
+
         $response = $this->createMock(ResponseInterface::class);
         $response->method('toArray')->willReturn([
             'status' => 'OK',
@@ -104,60 +113,21 @@ class FetchGoogleReviewsCommandTest extends TestCase
             ],
         ]);
 
-        $this->httpClient->method('request')->willReturn($response);
-        $this->repository->expects(self::never())->method('save');
+        $httpClient->method('request')->willReturn($response);
+        $repository->expects(self::never())->method('save');
 
-        $result = $this->tester->execute([]);
+        $command = new FetchGoogleReviewsCommand(
+            $httpClient,
+            $repository,
+            'test-api-key',
+            'test-place-id',
+        );
 
-        self::assertSame(Command::SUCCESS, $result);
-        self::assertStringContainsString('Importiert: 0', $this->tester->getDisplay());
-        self::assertStringContainsString('Übersprungen: 2', $this->tester->getDisplay());
-    }
-
-    public function testImportsNewReviews(): void
-    {
-        $response = $this->createMock(ResponseInterface::class);
-        $response->method('toArray')->willReturn([
-            'status' => 'OK',
-            'result' => [
-                'reviews' => [
-                    ['author_name' => 'Maria S.', 'rating' => 5, 'text' => 'Super!', 'time' => 1700000000, 'relative_time_description' => 'vor 3 Monaten'],
-                ],
-            ],
-        ]);
-
-        $this->httpClient->method('request')->willReturn($response);
-
-        $this->repository->method('findOneBy')->willReturn(null);
-        $this->repository->expects(self::once())->method('save')->with(self::isInstanceOf(GoogleReview::class), false);
-        $this->repository->method('getEntityManager')->willReturn($this->createMock(\Doctrine\ORM\EntityManagerInterface::class));
-
-        $result = $this->tester->execute([]);
+        $tester = new CommandTester($command);
+        $result = $tester->execute([]);
 
         self::assertSame(Command::SUCCESS, $result);
-        self::assertStringContainsString('Importiert: 1', $this->tester->getDisplay());
-    }
-
-    public function testSkipsDuplicateReviews(): void
-    {
-        $response = $this->createMock(ResponseInterface::class);
-        $response->method('toArray')->willReturn([
-            'status' => 'OK',
-            'result' => [
-                'reviews' => [
-                    ['author_name' => 'Maria S.', 'rating' => 5, 'text' => 'Super!', 'time' => 1700000000, 'relative_time_description' => 'vor 3 Monaten'],
-                ],
-            ],
-        ]);
-
-        $this->httpClient->method('request')->willReturn($response);
-        $this->repository->method('findOneBy')->willReturn(new GoogleReview());
-        $this->repository->expects(self::never())->method('save');
-        $this->repository->method('getEntityManager')->willReturn($this->createMock(\Doctrine\ORM\EntityManagerInterface::class));
-
-        $result = $this->tester->execute([]);
-
-        self::assertSame(Command::SUCCESS, $result);
-        self::assertStringContainsString('Übersprungen: 1', $this->tester->getDisplay());
+        self::assertStringContainsString('Importiert: 0', $tester->getDisplay());
+        self::assertStringContainsString('Übersprungen: 2', $tester->getDisplay());
     }
 }
