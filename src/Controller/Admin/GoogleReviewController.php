@@ -92,19 +92,22 @@ class GoogleReviewController extends AbstractController
             return $this->json(['error' => 'Invalid JSON body'], Response::HTTP_BAD_REQUEST);
         }
 
-        $review->setBlocked((bool) ($data['blocked'] ?? false));
-
         $newSortOrder = (int) ($data['sortOrder'] ?? 0);
         $reviewId = $review->getId();
-        if ($newSortOrder > 0 && $newSortOrder !== $review->getSortOrder()
-            && $reviewId !== null
-            && $this->repository->isSortOrderTaken($newSortOrder, $reviewId)
-        ) {
-            $this->repository->shiftSortOrderFrom($newSortOrder, $reviewId);
-        }
-        $review->setSortOrder($newSortOrder);
 
-        $this->repository->save($review);
+        $this->repository->getEntityManager()->wrapInTransaction(function () use ($review, $data, $newSortOrder, $reviewId): void {
+            $review->setBlocked((bool) ($data['blocked'] ?? false));
+
+            if ($newSortOrder > 0 && $newSortOrder !== $review->getSortOrder()
+                && $reviewId !== null
+                && $this->repository->isSortOrderTaken($newSortOrder, $reviewId)
+            ) {
+                $this->repository->shiftSortOrderFrom($newSortOrder, $reviewId);
+            }
+            $review->setSortOrder($newSortOrder);
+
+            $this->repository->save($review);
+        });
 
         return $this->json($review->mapToArray());
     }

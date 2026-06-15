@@ -114,9 +114,11 @@ class FetchGoogleReviewsCommand extends Command
         }
 
         if ($imported > 0) {
-            /** @var \Doctrine\ORM\EntityManager $em */
-            $em = $this->repository->getEntityManager();
-            $em->flush();
+            try {
+                $this->repository->getEntityManager()->flush();
+            } catch (\Doctrine\DBAL\Exception\UniqueConstraintViolationException) {
+                $io->warning('Einige Bewertungen wurden durch einen parallelen Import-Lauf bereits gespeichert und übersprungen.');
+            }
         }
 
         $io->success(\sprintf('Importiert: %d, Übersprungen: %d', $imported, $skipped));
