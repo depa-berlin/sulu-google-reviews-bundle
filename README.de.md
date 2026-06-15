@@ -37,7 +37,7 @@ In `config/bundles.php` hinzufügen:
 Depa\SuluGoogleReviewsBundle\DepaGoogleReviewsBundle::class => ['all' => true],
 ```
 
-### 4. Admin-Routen importieren
+### 3. Admin-Routen importieren
 
 In `config/routes/routes_admin.yaml` eintragen:
 
