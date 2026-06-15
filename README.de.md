@@ -58,7 +58,7 @@ GOOGLE_PLACE_ID=ChIJ...
 
 Die `Place ID` einer Location findet man in der [Google Maps Platform](https://developers.google.com/maps/documentation/places/web-service/place-id).
 
-### 5. Datenbank-Migration ausführen
+### 6. Datenbank-Migration ausführen
 
 ```bash
 bin/adminconsole doctrine:migrations:migrate
@@ -66,7 +66,7 @@ bin/adminconsole doctrine:migrations:migrate
 
 Dies legt die Tabelle `sulu_google_review` an.
 
-### 6. Cache leeren
+### 7. Cache leeren
 
 ```bash
 bin/adminconsole cache:clear
