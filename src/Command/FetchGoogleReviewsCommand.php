@@ -82,6 +82,7 @@ class FetchGoogleReviewsCommand extends Command
 
         $reviews = $data['result']['reviews'];
         $imported = 0;
+        $updated = 0;
         $skipped = 0;
 
         foreach ($reviews as $reviewData) {
@@ -98,12 +99,7 @@ class FetchGoogleReviewsCommand extends Command
                 'createdAtTimestamp' => $timestamp,
             ]);
 
-            if (null !== $existing) {
-                ++$skipped;
-                continue;
-            }
-
-            $review = new GoogleReview();
+            $review = $existing ?? new GoogleReview();
             $review->setAuthorName($authorName);
             $review->setProfilePhotoUrl($reviewData['profile_photo_url'] ?? null);
             $review->setRating((int) $reviewData['rating']);
@@ -112,10 +108,15 @@ class FetchGoogleReviewsCommand extends Command
             $review->setRelativeTimeDescription($reviewData['relative_time_description'] ?? '');
 
             $this->repository->save($review, false);
-            ++$imported;
+
+            if (null === $existing) {
+                ++$imported;
+            } else {
+                ++$updated;
+            }
         }
 
-        if ($imported > 0) {
+        if ($imported > 0 || $updated > 0) {
             try {
                 $this->repository->getEntityManager()->flush();
             } catch (\Doctrine\DBAL\Exception\UniqueConstraintViolationException) {
@@ -123,7 +124,7 @@ class FetchGoogleReviewsCommand extends Command
             }
         }
 
-        $io->success(\sprintf('Importiert: %d, Übersprungen: %d', $imported, $skipped));
+        $io->success(\sprintf('Importiert: %d, Aktualisiert: %d, Übersprungen: %d', $imported, $updated, $skipped));
 
         return Command::SUCCESS;
     }

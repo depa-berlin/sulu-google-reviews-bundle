@@ -118,7 +118,12 @@ bin/adminconsole sulu:google-reviews:fetch
 0 3 * * * /path/to/project/bin/adminconsole sulu:google-reviews:fetch
 ```
 
-Der Command importiert nur neue Bewertungen (≥ 4 Sterne). Bereits vorhandene Einträge werden übersprungen.
+Der Command importiert neue Bewertungen (≥ 4 Sterne) und aktualisiert bei bereits vorhandenen Einträgen den Text, das Rating, das Profilbild und die Zeitangabe. Manuelle Moderationsfelder (Gesperrt, Eigene Reihenfolge) bleiben dabei erhalten.
+
+### Hinweise zur Google-API
+
+- **Maximal 5 Bewertungen pro Abruf:** Der `place/details`-Endpoint der Google Places API liefert höchstens 5 Bewertungen ohne Pagination. Erscheinen zwischen zwei Cron-Läufen mehr als 5 neue Bewertungen, kann es zu Lücken kommen. Der Import wird daher mit `reviews_sort=newest` und `language=de` durchgeführt, um zuverlässig die neuesten deutschen Bewertungen zu erhalten.
+- **Legacy-API:** Das Bundle nutzt die klassische Places API (`maps.googleapis.com/maps/api/place/details/json`). Neue Google-Cloud-Kunden müssen ggf. auf die „Places API (New)" umstellen, da die Legacy-API für Neukunden nicht mehr aktivierbar ist.
 
 ---
 
