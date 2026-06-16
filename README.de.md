@@ -72,6 +72,38 @@ Dies legt die Tabelle `sulu_google_review` an.
 bin/adminconsole cache:clear
 ```
 
+### 7. Admin-Feldtyp einbinden (Frontend-Build)
+
+Die Detailansicht im Admin nutzt einen read-only React-Feldtyp `google_review_display`, dessen Quelle im Bundle unter `Resources/js/` liegt. Da Sulu Admin-JS über den Webpack-Build des Projekts gebaut wird, muss das konsumierende Projekt diese Quelle einbinden:
+
+1. Import in der Admin-Entry-Datei (`assets/admin/app.js`):
+
+   ```js
+   import '../../packages/sulu-google-reviews-bundle/Resources/js';
+   ```
+
+2. Da die Datei außerhalb von `assets/admin/` liegt, in `assets/admin/webpack.config.js` sicherstellen, dass Babel sie mit der Projekt-Config transpiliert und Bare-Imports aufgelöst werden:
+
+   ```js
+   const babelRule = config.module.rules.find(
+       (rule) => rule.test && rule.test.toString() === /\.js$/.toString()
+   );
+   if (babelRule && babelRule.use) {
+       babelRule.use.options = babelRule.use.options || {};
+       babelRule.use.options.configFile = path.resolve(__dirname, 'babel.config.json');
+   }
+   config.resolve = config.resolve || {};
+   config.resolve.modules = [path.resolve(__dirname, 'node_modules'), 'node_modules'];
+   ```
+
+3. Admin-Build ausführen:
+
+   ```bash
+   cd assets/admin && npm run build
+   ```
+
+> Hinweis: Sulu kann Admin-JS aus einem Bundle nicht selbst kompilieren — Registrierung und Build laufen immer über das Projekt. Dieser Schritt ist daher projektseitig und einmalig nötig.
+
 ---
 
 ## Sulu-Block einbinden

@@ -74,27 +74,26 @@ class GoogleReviewTest extends TestCase
         self::assertSame('vor 2 Monaten', $this->review->getRelativeTime('it'));
     }
 
-    public function testGetTranslationsOverviewListsAllLanguages(): void
+    public function testToDisplayArrayContainsAllLanguages(): void
     {
         $this->review
+            ->setAuthorName('Maria Schneider')
+            ->setRating(5)
+            ->setCreatedAtTimestamp(1700000000)
             ->setOriginalText('Super magasin')
             ->setOriginalLanguage('fr')
             ->setTranslation('de', 'Tolles Geschäft', 'vor 2 Monaten')
             ->setTranslation('en', 'Great shop', '2 months ago');
 
-        $overview = $this->review->getTranslationsOverview();
+        $display = $this->review->toDisplayArray();
 
-        self::assertStringContainsString('[DE] Tolles Geschäft', $overview);
-        self::assertStringContainsString('vor 2 Monaten', $overview);
-        self::assertStringContainsString('[EN] Great shop', $overview);
-        self::assertStringContainsString('2 months ago', $overview);
-    }
-
-    public function testGetTranslationsOverviewFallsBackToOriginal(): void
-    {
-        $this->review->setOriginalText('Super magasin');
-
-        self::assertSame('Super magasin', $this->review->getTranslationsOverview());
+        self::assertSame('Maria Schneider', $display['authorName']);
+        self::assertSame(5, $display['rating']);
+        self::assertSame('fr', $display['originalLanguage']);
+        self::assertSame('Tolles Geschäft', $display['translations']['de']['text']);
+        self::assertSame('vor 2 Monaten', $display['translations']['de']['relativeTime']);
+        self::assertSame('Great shop', $display['translations']['en']['text']);
+        self::assertNotSame('', $display['date']);
     }
 
     public function testProfilePhotoUrlNullable(): void
@@ -124,7 +123,7 @@ class GoogleReviewTest extends TestCase
         self::assertArrayHasKey('profilePhotoUrl', $array);
         self::assertArrayHasKey('rating', $array);
         self::assertArrayHasKey('text', $array);
-        self::assertArrayHasKey('textsByLocale', $array);
+        self::assertArrayHasKey('reviewDisplay', $array);
         self::assertArrayHasKey('originalText', $array);
         self::assertArrayHasKey('originalLanguage', $array);
         self::assertArrayHasKey('createdAtTimestamp', $array);

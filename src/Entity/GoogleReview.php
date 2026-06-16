@@ -218,27 +218,25 @@ class GoogleReview
     }
 
     /**
-     * Read-only overview of all stored language versions, for display in the admin.
+     * Structured read-only payload consumed by the admin display field type
+     * (google_review_display).
+     *
+     * @return array{authorName: string, profilePhotoUrl: string|null, rating: int, date: string, originalLanguage: string|null, translations: array<string, array{text: string, relativeTime: string}>}
      */
-    public function getTranslationsOverview(): string
+    public function toDisplayArray(): array
     {
-        if ([] === $this->translations) {
-            return $this->originalText ?? '';
-        }
-
-        $lines = [];
-        foreach ($this->translations as $locale => $translation) {
-            $lines[] = \sprintf('[%s] %s', \strtoupper($locale), $translation['text']);
-            if ('' !== $translation['relativeTime']) {
-                $lines[] = \sprintf('       (%s)', $translation['relativeTime']);
-            }
-        }
-
-        return \implode("\n", $lines);
+        return [
+            'authorName'       => $this->authorName,
+            'profilePhotoUrl'  => $this->profilePhotoUrl,
+            'rating'           => $this->rating,
+            'date'             => $this->createdAtTimestamp > 0 ? \date('d.m.Y', $this->createdAtTimestamp) : '',
+            'originalLanguage' => $this->originalLanguage,
+            'translations'     => $this->translations,
+        ];
     }
 
     /**
-     * @return array{id: int|null, authorName: string, profilePhotoUrl: string|null, rating: int, text: string, textsByLocale: string, originalText: string|null, originalLanguage: string|null, createdAtTimestamp: int, relativeTimeDescription: string, blocked: bool, sortOrder: int}
+     * @return array{id: int|null, authorName: string, profilePhotoUrl: string|null, rating: int, text: string, reviewDisplay: array{authorName: string, profilePhotoUrl: string|null, rating: int, date: string, originalLanguage: string|null, translations: array<string, array{text: string, relativeTime: string}>}, originalText: string|null, originalLanguage: string|null, createdAtTimestamp: int, relativeTimeDescription: string, blocked: bool, sortOrder: int}
      */
     public function mapToArray(): array
     {
@@ -248,7 +246,7 @@ class GoogleReview
             'profilePhotoUrl'         => $this->profilePhotoUrl,
             'rating'                  => $this->rating,
             'text'                    => $this->getText(),
-            'textsByLocale'           => $this->getTranslationsOverview(),
+            'reviewDisplay'           => $this->toDisplayArray(),
             'originalText'            => $this->originalText,
             'originalLanguage'        => $this->originalLanguage,
             'createdAtTimestamp'      => $this->createdAtTimestamp,

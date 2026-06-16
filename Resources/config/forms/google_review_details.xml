@@ -12,54 +12,10 @@
                 <title lang="en">Review (automatically imported from Google)</title>
             </meta>
             <properties>
-                <property name="authorName" type="text_line" colspan="12">
+                <property name="reviewDisplay" type="google_review_display" colspan="12">
                     <meta>
-                        <title lang="de">Autor</title>
-                        <title lang="en">Author</title>
-                    </meta>
-                </property>
-
-                <property name="rating" type="text_line" colspan="6">
-                    <meta>
-                        <title lang="de">Bewertung (Sterne)</title>
-                        <title lang="en">Rating (Stars)</title>
-                    </meta>
-                </property>
-
-                <property name="createdAtTimestamp" type="text_line" colspan="6">
-                    <meta>
-                        <title lang="de">Datum</title>
-                        <title lang="en">Date</title>
-                    </meta>
-                </property>
-
-                <property name="textsByLocale" type="text_area" colspan="12">
-                    <meta>
-                        <title lang="de">Bewertungstext (alle Sprachen)</title>
-                        <title lang="en">Review Text (all languages)</title>
-                        <info_text lang="de">Schreibgeschützt — von Google je Webspace-Sprache importiert.</info_text>
-                        <info_text lang="en">Read-only — imported from Google per webspace language.</info_text>
-                    </meta>
-                </property>
-
-                <property name="originalText" type="text_area" colspan="9">
-                    <meta>
-                        <title lang="de">Originaltext</title>
-                        <title lang="en">Original Text</title>
-                    </meta>
-                </property>
-
-                <property name="originalLanguage" type="text_line" colspan="3">
-                    <meta>
-                        <title lang="de">Originalsprache</title>
-                        <title lang="en">Original Language</title>
-                    </meta>
-                </property>
-
-                <property name="profilePhotoUrl" type="text_line" colspan="12">
-                    <meta>
-                        <title lang="de">Profilbild-URL</title>
-                        <title lang="en">Profile Photo URL</title>
+                        <title lang="de">Bewertung</title>
+                        <title lang="en">Review</title>
                     </meta>
                 </property>
             </properties>
