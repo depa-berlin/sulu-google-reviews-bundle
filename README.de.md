@@ -104,6 +104,8 @@ Die Detailansicht im Admin nutzt einen read-only React-Feldtyp `google_review_di
 
 > Hinweis: Sulu kann Admin-JS aus einem Bundle nicht selbst kompilieren — Registrierung und Build laufen immer über das Projekt. Dieser Schritt ist daher projektseitig und einmalig nötig.
 
+> ⚠️ Achtung bei `bin/adminconsole sulu:admin:update-build`: Dieser Befehl gleicht die Dateien in `assets/admin/` mit dem `sulu/skeleton` ab und überschreibt sie auf Nachfrage. Für `webpack.config.js` (und `package.json`, `babel.config.json`) ist die Vorgabe **„überschreiben = ja"** — dabei gingen die oben gezeigten Anpassungen (`configFile`, `resolve.modules`) verloren und der Feldtyp ließe sich nicht mehr bauen. Beim Ausführen des Befehls die angepasste `webpack.config.js` daher **nicht** überschreiben und auch den Import in `app.js` behalten (dort ist die Vorgabe ohnehin „nein"). Der Befehl bindet den Feldtyp nicht selbst ein — die Einbindung erfolgt ausschließlich über die Schritte 1–3 oben.
+
 ---
 
 ## Sulu-Block einbinden
