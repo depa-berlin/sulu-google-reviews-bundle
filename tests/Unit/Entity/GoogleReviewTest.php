@@ -74,6 +74,29 @@ class GoogleReviewTest extends TestCase
         self::assertSame('vor 2 Monaten', $this->review->getRelativeTime('it'));
     }
 
+    public function testGetTranslationsOverviewListsAllLanguages(): void
+    {
+        $this->review
+            ->setOriginalText('Super magasin')
+            ->setOriginalLanguage('fr')
+            ->setTranslation('de', 'Tolles Geschäft', 'vor 2 Monaten')
+            ->setTranslation('en', 'Great shop', '2 months ago');
+
+        $overview = $this->review->getTranslationsOverview();
+
+        self::assertStringContainsString('[DE] Tolles Geschäft', $overview);
+        self::assertStringContainsString('vor 2 Monaten', $overview);
+        self::assertStringContainsString('[EN] Great shop', $overview);
+        self::assertStringContainsString('2 months ago', $overview);
+    }
+
+    public function testGetTranslationsOverviewFallsBackToOriginal(): void
+    {
+        $this->review->setOriginalText('Super magasin');
+
+        self::assertSame('Super magasin', $this->review->getTranslationsOverview());
+    }
+
     public function testProfilePhotoUrlNullable(): void
     {
         $this->review->setProfilePhotoUrl('https://example.com/photo.jpg');
@@ -101,6 +124,8 @@ class GoogleReviewTest extends TestCase
         self::assertArrayHasKey('profilePhotoUrl', $array);
         self::assertArrayHasKey('rating', $array);
         self::assertArrayHasKey('text', $array);
+        self::assertArrayHasKey('textsByLocale', $array);
+        self::assertArrayHasKey('originalText', $array);
         self::assertArrayHasKey('originalLanguage', $array);
         self::assertArrayHasKey('createdAtTimestamp', $array);
         self::assertArrayHasKey('relativeTimeDescription', $array);

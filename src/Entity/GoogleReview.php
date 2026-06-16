@@ -218,7 +218,27 @@ class GoogleReview
     }
 
     /**
-     * @return array{id: int|null, authorName: string, profilePhotoUrl: string|null, rating: int, text: string, originalLanguage: string|null, createdAtTimestamp: int, relativeTimeDescription: string, blocked: bool, sortOrder: int}
+     * Read-only overview of all stored language versions, for display in the admin.
+     */
+    public function getTranslationsOverview(): string
+    {
+        if ([] === $this->translations) {
+            return $this->originalText ?? '';
+        }
+
+        $lines = [];
+        foreach ($this->translations as $locale => $translation) {
+            $lines[] = \sprintf('[%s] %s', \strtoupper($locale), $translation['text']);
+            if ('' !== $translation['relativeTime']) {
+                $lines[] = \sprintf('       (%s)', $translation['relativeTime']);
+            }
+        }
+
+        return \implode("\n", $lines);
+    }
+
+    /**
+     * @return array{id: int|null, authorName: string, profilePhotoUrl: string|null, rating: int, text: string, textsByLocale: string, originalText: string|null, originalLanguage: string|null, createdAtTimestamp: int, relativeTimeDescription: string, blocked: bool, sortOrder: int}
      */
     public function mapToArray(): array
     {
@@ -228,6 +248,8 @@ class GoogleReview
             'profilePhotoUrl'         => $this->profilePhotoUrl,
             'rating'                  => $this->rating,
             'text'                    => $this->getText(),
+            'textsByLocale'           => $this->getTranslationsOverview(),
+            'originalText'            => $this->originalText,
             'originalLanguage'        => $this->originalLanguage,
             'createdAtTimestamp'      => $this->createdAtTimestamp,
             'relativeTimeDescription' => $this->getRelativeTime(),

@@ -33,17 +33,26 @@
                     </meta>
                 </property>
 
-                <property name="relativeTimeDescription" type="text_line" colspan="12">
+                <property name="textsByLocale" type="text_area" colspan="12">
                     <meta>
-                        <title lang="de">Zeitangabe (Google)</title>
-                        <title lang="en">Time Description (Google)</title>
+                        <title lang="de">Bewertungstext (alle Sprachen)</title>
+                        <title lang="en">Review Text (all languages)</title>
+                        <info_text lang="de">Schreibgeschützt — von Google je Webspace-Sprache importiert.</info_text>
+                        <info_text lang="en">Read-only — imported from Google per webspace language.</info_text>
                     </meta>
                 </property>
 
-                <property name="text" type="text_area" colspan="12">
+                <property name="originalText" type="text_area" colspan="9">
                     <meta>
-                        <title lang="de">Bewertungstext</title>
-                        <title lang="en">Review Text</title>
+                        <title lang="de">Originaltext</title>
+                        <title lang="en">Original Text</title>
+                    </meta>
+                </property>
+
+                <property name="originalLanguage" type="text_line" colspan="3">
+                    <meta>
+                        <title lang="de">Originalsprache</title>
+                        <title lang="en">Original Language</title>
                     </meta>
                 </property>
 
