@@ -95,7 +95,7 @@ class GoogleReviewController extends AbstractController
         $newSortOrder = (int) ($data['sortOrder'] ?? 0);
         $reviewId = $review->getId();
 
-        $this->repository->getEntityManager()->wrapInTransaction(function () use ($review, $data, $newSortOrder, $reviewId): void {
+        $this->repository->wrapInTransaction(function () use ($review, $data, $newSortOrder, $reviewId): void {
             $review->setBlocked((bool) ($data['blocked'] ?? false));
 
             if ($newSortOrder > 0 && $newSortOrder !== $review->getSortOrder()

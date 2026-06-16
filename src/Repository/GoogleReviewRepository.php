@@ -69,6 +69,11 @@ class GoogleReviewRepository extends ServiceEntityRepository
             ->execute();
     }
 
+    public function wrapInTransaction(callable $func): mixed
+    {
+        return $this->getEntityManager()->wrapInTransaction($func);
+    }
+
     public function save(GoogleReview $review, bool $flush = true): void
     {
         $em = $this->getEntityManager();
