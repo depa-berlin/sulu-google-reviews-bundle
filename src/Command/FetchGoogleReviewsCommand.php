@@ -20,7 +20,7 @@ use Symfony\Contracts\HttpClient\HttpClientInterface;
 )]
 class FetchGoogleReviewsCommand extends Command
 {
-    private const API_URL = 'https://maps.googleapis.com/maps/api/place/details/json';
+    private const API_URL = 'https://places.googleapis.com/v1/places';
 
     public function __construct(
         private readonly HttpClientInterface $httpClient,
@@ -42,17 +42,18 @@ class FetchGoogleReviewsCommand extends Command
         }
 
         try {
-            $response = $this->httpClient->request('GET', self::API_URL, [
+            $response = $this->httpClient->request('GET', self::API_URL . '/' . \rawurlencode($this->placeId), [
+                'headers' => [
+                    'X-Goog-Api-Key'   => $this->apiKey,
+                    'X-Goog-FieldMask' => 'reviews',
+                ],
                 'query' => [
-                    'place_id'     => $this->placeId,
-                    'fields'       => 'reviews',
-                    'reviews_sort' => 'newest',
-                    'language'     => 'de',
-                    'key'          => $this->apiKey,
+                    'languageCode' => 'de',
                 ],
             ]);
 
-            $data = $response->toArray();
+            $statusCode = $response->getStatusCode();
+            $data = $response->toArray(false);
         } catch (TransportExceptionInterface $e) {
             $io->error('Google Places API nicht erreichbar: ' . $e->getMessage());
 
@@ -63,36 +64,37 @@ class FetchGoogleReviewsCommand extends Command
             return Command::FAILURE;
         }
 
-        $status = $data['status'] ?? 'UNKNOWN';
-        if ('OK' !== $status) {
+        if (200 !== $statusCode) {
             $io->error(\sprintf(
-                'Google API returned status "%s": %s',
-                $status,
-                $data['error_message'] ?? 'keine Fehlermeldung'
+                'Google Places API Fehler (HTTP %d): %s',
+                $statusCode,
+                $data['error']['message'] ?? 'keine Fehlermeldung'
             ));
 
             return Command::FAILURE;
         }
 
-        if (!isset($data['result']['reviews'])) {
+        if (empty($data['reviews'])) {
             $io->warning('Keine Bewertungen in der API-Antwort gefunden.');
 
             return Command::SUCCESS;
         }
 
-        $reviews = $data['result']['reviews'];
+        $reviews = $data['reviews'];
         $imported = 0;
         $updated = 0;
         $skipped = 0;
 
         foreach ($reviews as $reviewData) {
-            if (($reviewData['rating'] ?? 0) < 4) {
+            $rating = (int) ($reviewData['rating'] ?? 0);
+            if ($rating < 4) {
                 ++$skipped;
                 continue;
             }
 
-            $authorName = $reviewData['author_name'] ?? '';
-            $timestamp = $reviewData['time'] ?? 0;
+            $authorName = $reviewData['authorAttribution']['displayName'] ?? '';
+            $publishTime = $reviewData['publishTime'] ?? null;
+            $timestamp = null !== $publishTime ? (\strtotime($publishTime) ?: 0) : 0;
 
             $existing = $this->repository->findOneBy([
                 'authorName'         => $authorName,
@@ -101,11 +103,11 @@ class FetchGoogleReviewsCommand extends Command
 
             $review = $existing ?? new GoogleReview();
             $review->setAuthorName($authorName);
-            $review->setProfilePhotoUrl($reviewData['profile_photo_url'] ?? null);
-            $review->setRating((int) $reviewData['rating']);
-            $review->setText($reviewData['text'] ?? '');
-            $review->setCreatedAtTimestamp((int) $timestamp);
-            $review->setRelativeTimeDescription($reviewData['relative_time_description'] ?? '');
+            $review->setProfilePhotoUrl($reviewData['authorAttribution']['photoUri'] ?? null);
+            $review->setRating($rating);
+            $review->setText($reviewData['text']['text'] ?? '');
+            $review->setCreatedAtTimestamp($timestamp);
+            $review->setRelativeTimeDescription($reviewData['relativePublishTimeDescription'] ?? '');
 
             $this->repository->save($review, false);
 

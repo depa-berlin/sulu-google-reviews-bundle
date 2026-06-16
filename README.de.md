@@ -122,8 +122,8 @@ Der Command importiert neue Bewertungen (≥ 4 Sterne) und aktualisiert bei bere
 
 ### Hinweise zur Google-API
 
-- **Maximal 5 Bewertungen pro Abruf:** Der `place/details`-Endpoint der Google Places API liefert höchstens 5 Bewertungen ohne Pagination. Erscheinen zwischen zwei Cron-Läufen mehr als 5 neue Bewertungen, kann es zu Lücken kommen. Der Import wird daher mit `reviews_sort=newest` und `language=de` durchgeführt, um zuverlässig die neuesten deutschen Bewertungen zu erhalten.
-- **Legacy-API:** Das Bundle nutzt die klassische Places API (`maps.googleapis.com/maps/api/place/details/json`). Neue Google-Cloud-Kunden müssen ggf. auf die „Places API (New)" umstellen, da die Legacy-API für Neukunden nicht mehr aktivierbar ist.
+- **Places API (New):** Das Bundle nutzt die aktuelle Places API (`places.googleapis.com/v1/places/{placeId}`) mit API-Key im Header (`X-Goog-Api-Key`) und FieldMask (`X-Goog-FieldMask: reviews`). Die alte „Places API (Legacy)" wird **nicht** verwendet, da sie für neue Google-Cloud-Projekte nicht mehr aktivierbar ist. In der Google Cloud Console muss die **„Places API (New)"** aktiviert sein.
+- **Maximal 5 Bewertungen pro Abruf:** Die Places API liefert höchstens 5 Bewertungen ohne Pagination und ohne Sortieroption. Erscheinen zwischen zwei Cron-Läufen mehr als 5 neue Bewertungen, kann es zu Lücken kommen. Der Abruf erfolgt mit `languageCode=de` für deutsche Bewertungstexte und Zeitangaben.
 
 ---
 

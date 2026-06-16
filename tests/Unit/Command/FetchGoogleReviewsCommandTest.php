@@ -50,13 +50,14 @@ class FetchGoogleReviewsCommandTest extends TestCase
         self::assertSame(Command::FAILURE, $result);
     }
 
-    public function testFailsOnApiStatusNotOk(): void
+    public function testFailsOnApiError(): void
     {
         $httpClient = $this->createMock(HttpClientInterface::class);
         $repository = $this->createMock(\Depa\SuluGoogleReviewsBundle\Repository\GoogleReviewRepository::class);
 
         $response = $this->createMock(ResponseInterface::class);
-        $response->method('toArray')->willReturn(['status' => 'REQUEST_DENIED', 'error_message' => 'API key invalid']);
+        $response->method('getStatusCode')->willReturn(403);
+        $response->method('toArray')->willReturn(['error' => ['message' => 'API key invalid', 'status' => 'PERMISSION_DENIED']]);
 
         $httpClient->method('request')->willReturn($response);
 
@@ -71,7 +72,7 @@ class FetchGoogleReviewsCommandTest extends TestCase
         $result = $tester->execute([]);
 
         self::assertSame(Command::FAILURE, $result);
-        self::assertStringContainsString('REQUEST_DENIED', $tester->getDisplay());
+        self::assertStringContainsString('API key invalid', $tester->getDisplay());
     }
 
     public function testSucceedsWithNoReviews(): void
@@ -80,7 +81,8 @@ class FetchGoogleReviewsCommandTest extends TestCase
         $repository = $this->createMock(\Depa\SuluGoogleReviewsBundle\Repository\GoogleReviewRepository::class);
 
         $response = $this->createMock(ResponseInterface::class);
-        $response->method('toArray')->willReturn(['status' => 'OK', 'result' => []]);
+        $response->method('getStatusCode')->willReturn(200);
+        $response->method('toArray')->willReturn([]);
 
         $httpClient->method('request')->willReturn($response);
 
@@ -103,12 +105,22 @@ class FetchGoogleReviewsCommandTest extends TestCase
         $repository = $this->createMock(\Depa\SuluGoogleReviewsBundle\Repository\GoogleReviewRepository::class);
 
         $response = $this->createMock(ResponseInterface::class);
+        $response->method('getStatusCode')->willReturn(200);
         $response->method('toArray')->willReturn([
-            'status' => 'OK',
-            'result' => [
-                'reviews' => [
-                    ['author_name' => 'Bad User', 'rating' => 2, 'text' => 'Bad', 'time' => 1700000000, 'relative_time_description' => 'vor 1 Monat'],
-                    ['author_name' => 'Good User', 'rating' => 3, 'text' => 'Ok',  'time' => 1700000001, 'relative_time_description' => 'vor 1 Monat'],
+            'reviews' => [
+                [
+                    'authorAttribution' => ['displayName' => 'Bad User'],
+                    'rating' => 2,
+                    'text' => ['text' => 'Bad'],
+                    'publishTime' => '2023-11-14T22:13:20Z',
+                    'relativePublishTimeDescription' => 'vor 1 Monat',
+                ],
+                [
+                    'authorAttribution' => ['displayName' => 'Good User'],
+                    'rating' => 3,
+                    'text' => ['text' => 'Ok'],
+                    'publishTime' => '2023-11-14T22:13:21Z',
+                    'relativePublishTimeDescription' => 'vor 1 Monat',
                 ],
             ],
         ]);
