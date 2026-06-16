@@ -160,7 +160,13 @@ class FetchGoogleReviewsCommand extends Command
             try {
                 $this->repository->flush();
             } catch (\Doctrine\DBAL\Exception\UniqueConstraintViolationException) {
-                $io->warning('Einige Bewertungen wurden durch einen parallelen Import-Lauf bereits gespeichert und übersprungen.');
+                // Ein fehlgeschlagenes flush() rollt die gesamte Unit of Work zurück und
+                // schließt den EntityManager — es wurde nichts gespeichert. Das passiert
+                // praktisch nur bei einem parallelen Import-Lauf. Ehrlich als Fehler melden,
+                // damit Cron/CI das nicht als Erfolg werten; der nächste Lauf importiert erneut.
+                $io->error('Import nicht gespeichert: paralleler Lauf hat dieselben Bewertungen bereits geschrieben. Bitte erneut ausführen.');
+
+                return Command::FAILURE;
             }
         }
 

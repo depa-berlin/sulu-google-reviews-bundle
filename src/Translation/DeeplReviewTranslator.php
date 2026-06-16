@@ -13,11 +13,16 @@ namespace Depa\SuluGoogleReviewsBundle\Translation;
 class DeeplReviewTranslator implements ReviewTranslatorInterface
 {
     /**
-     * Sulu locales that need a region-specific DeepL target code.
+     * DeepL target codes that require a region (DeepL rejects bare "EN"/"PT").
+     * Keyed by normalized Sulu locale (lowercased, "_" → "-"); base language as fallback.
      */
     private const TARGET_MAP = [
-        'en' => 'EN-GB',
-        'pt' => 'PT-PT',
+        'en'    => 'EN-GB',
+        'en-us' => 'EN-US',
+        'en-gb' => 'EN-GB',
+        'pt'    => 'PT-PT',
+        'pt-br' => 'PT-BR',
+        'pt-pt' => 'PT-PT',
     ];
 
     /**
@@ -30,11 +35,35 @@ class DeeplReviewTranslator implements ReviewTranslatorInterface
 
     public function translate(string $text, string $targetLocale, ?string $sourceLocale = null): string
     {
-        $target = self::TARGET_MAP[$targetLocale] ?? \strtoupper($targetLocale);
+        $target = $this->toDeeplTarget($targetLocale);
+        $source = null !== $sourceLocale && '' !== $sourceLocale
+            ? \strtoupper($this->baseLanguage($sourceLocale))
+            : null;
 
         /** @var object{text: string} $result */
-        $result = $this->client->translateText($text, null, $target);
+        $result = $this->client->translateText($text, $source, $target);
 
         return (string) $result->text;
+    }
+
+    private function toDeeplTarget(string $locale): string
+    {
+        $normalized = \str_replace('_', '-', \strtolower($locale));
+
+        if (isset(self::TARGET_MAP[$normalized])) {
+            return self::TARGET_MAP[$normalized];
+        }
+
+        $base = $this->baseLanguage($locale);
+
+        return self::TARGET_MAP[$base] ?? \strtoupper($base);
+    }
+
+    private function baseLanguage(string $locale): string
+    {
+        $base = \strtolower($locale);
+        $base = \explode('_', $base)[0];
+
+        return \explode('-', $base)[0];
     }
 }

@@ -51,4 +51,45 @@ class DeeplReviewTranslatorTest extends TestCase
 
         self::assertSame('FR', $client->calls[0]['target']);
     }
+
+    public function testRegionLocaleFallsBackToBaseLanguageTarget(): void
+    {
+        $client = $this->client();
+        $translator = new DeeplReviewTranslator($client);
+
+        // de_at hat bei DeepL keinen Regionalcode -> Basis-Sprache DE (nicht "DE_AT")
+        $translator->translate('Hallo', 'de_at');
+
+        self::assertSame('DE', $client->calls[0]['target']);
+    }
+
+    public function testRegionLocaleUsesSpecificDeeplTargetWhenMapped(): void
+    {
+        $client = $this->client();
+        $translator = new DeeplReviewTranslator($client);
+
+        $translator->translate('Hallo', 'pt_br');
+
+        self::assertSame('PT-BR', $client->calls[0]['target']);
+    }
+
+    public function testForwardsSourceLocaleAsBaseLanguage(): void
+    {
+        $client = $this->client();
+        $translator = new DeeplReviewTranslator($client);
+
+        $translator->translate('Bonjour', 'de', 'fr_FR');
+
+        self::assertSame('FR', $client->calls[0]['source']);
+    }
+
+    public function testNullSourceWhenNotProvided(): void
+    {
+        $client = $this->client();
+        $translator = new DeeplReviewTranslator($client);
+
+        $translator->translate('Hallo', 'de');
+
+        self::assertNull($client->calls[0]['source']);
+    }
 }

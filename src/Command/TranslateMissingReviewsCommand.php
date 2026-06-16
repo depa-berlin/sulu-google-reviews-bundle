@@ -19,6 +19,8 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 )]
 class TranslateMissingReviewsCommand extends Command
 {
+    private const MAX_CONSECUTIVE_FAILURES = 10;
+
     public function __construct(
         private readonly GoogleReviewRepository $repository,
         private readonly WebspaceManagerInterface $webspaceManager,
@@ -48,6 +50,8 @@ class TranslateMissingReviewsCommand extends Command
         $reviews = $this->repository->findAll();
         $translated = 0;
         $reviewsTouched = 0;
+        $consecutiveFailures = 0;
+        $aborted = false;
 
         foreach ($reviews as $review) {
             $source = $review->getOriginalText();
@@ -65,8 +69,17 @@ class TranslateMissingReviewsCommand extends Command
 
                 try {
                     $text = $this->translator->translate($source, $locale, $review->getOriginalLanguage());
+                    $consecutiveFailures = 0;
                 } catch (\Throwable $e) {
                     $io->warning(\sprintf('Bewertung #%s / %s: %s', (string) $review->getId(), $locale, $e->getMessage()));
+
+                    // Bei einer Fehlerserie (z. B. Kontingent erschöpft, Rate-Limit) abbrechen,
+                    // statt den Übersetzungsdienst pro Item weiter zu hämmern.
+                    if (++$consecutiveFailures >= self::MAX_CONSECUTIVE_FAILURES) {
+                        $aborted = true;
+                        break 2;
+                    }
+
                     continue;
                 }
 
@@ -75,14 +88,23 @@ class TranslateMissingReviewsCommand extends Command
                 ++$translated;
             }
 
+            // Inkrementell speichern, damit Fortschritt einen späteren Abbruch/Timeout übersteht.
             if ($changed) {
                 $this->repository->save($review, false);
+                $this->repository->flush();
                 ++$reviewsTouched;
             }
         }
 
-        if ($translated > 0) {
-            $this->repository->flush();
+        if ($aborted) {
+            $io->error(\sprintf(
+                'Abbruch nach %d aufeinanderfolgenden Übersetzungsfehlern. Bereits ergänzt: %d in %d Bewertungen.',
+                self::MAX_CONSECUTIVE_FAILURES,
+                $translated,
+                $reviewsTouched
+            ));
+
+            return Command::FAILURE;
         }
 
         $io->success(\sprintf(

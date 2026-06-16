@@ -175,19 +175,16 @@ class GoogleReview
     }
 
     /**
-     * Relative time description ("vor 1 Monat") for the given locale, with a
-     * fallback to any stored description.
+     * Relative time description ("vor 1 Monat") for the given locale.
+     *
+     * Returns an empty string when no description is stored for that locale —
+     * deliberately no cross-locale fallback, otherwise a French page could show
+     * a German "vor 1 Monat".
      */
     public function getRelativeTime(?string $locale = null): string
     {
         if (null !== $locale && isset($this->translations[$locale]['relativeTime'])) {
             return $this->translations[$locale]['relativeTime'];
-        }
-
-        foreach ($this->translations as $translation) {
-            if ('' !== $translation['relativeTime']) {
-                return $translation['relativeTime'];
-            }
         }
 
         return '';

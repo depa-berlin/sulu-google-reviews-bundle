@@ -70,8 +70,9 @@ class GoogleReviewTest extends TestCase
         self::assertSame('Super magasin', $this->review->getText('it'));
         // Ohne Locale ebenfalls Originaltext
         self::assertSame('Super magasin', $this->review->getText());
-        // relativeTime fällt auf eine vorhandene Beschreibung zurück
-        self::assertSame('vor 2 Monaten', $this->review->getRelativeTime('it'));
+        // relativeTime hat KEINEN Cross-Locale-Fallback -> leer für fehlende Locale
+        self::assertSame('', $this->review->getRelativeTime('it'));
+        self::assertSame('vor 2 Monaten', $this->review->getRelativeTime('de'));
     }
 
     public function testToDisplayArrayContainsAllLanguages(): void
