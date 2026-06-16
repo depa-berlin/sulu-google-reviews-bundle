@@ -1,5 +1,6 @@
 // @flow
 import React from 'react';
+import {Divider, Heading, Icon} from 'sulu-admin-bundle/components';
 
 type Translation = {
     relativeTime: string,
@@ -30,6 +31,16 @@ function localeStyle(locale: string) {
 }
 
 export default class GoogleReviewDisplay extends React.Component<Props> {
+    renderStars(rating: number) {
+        return [1, 2, 3, 4, 5].map((i) => (
+            <Icon
+                key={i}
+                name="star"
+                style={{color: i <= rating ? '#f5a623' : '#d8d8d8', marginRight: 2}}
+            />
+        ));
+    }
+
     render() {
         const value: ReviewValue = this.props.value || {};
         const authorName = value.authorName || '';
@@ -39,8 +50,8 @@ export default class GoogleReviewDisplay extends React.Component<Props> {
         const locales = Object.keys(translations);
 
         return (
-            <div style={{border: '1px solid #e4e4e4', borderRadius: 4, overflow: 'hidden'}}>
-                <div style={{display: 'flex', alignItems: 'center', gap: 14, padding: '14px 16px', borderBottom: '1px solid #f0f0f0'}}>
+            <div>
+                <div style={{display: 'flex', alignItems: 'center', gap: 14, marginBottom: 16}}>
                     {value.profilePhotoUrl
                         ? (
                             <img
@@ -59,12 +70,8 @@ export default class GoogleReviewDisplay extends React.Component<Props> {
                     }
                     <div style={{flex: 1, minWidth: 0}}>
                         <div style={{fontWeight: 600, fontSize: 16}}>{authorName}</div>
-                        <div style={{display: 'flex', alignItems: 'center', gap: 12, marginTop: 2}}>
-                            <span style={{color: '#BA7517', fontSize: 15, letterSpacing: 1}}>
-                                {[1, 2, 3, 4, 5].map((i) => (
-                                    <span key={i} style={{opacity: i <= rating ? 1 : 0.25}}>{'★'}</span>
-                                ))}
-                            </span>
+                        <div style={{display: 'flex', alignItems: 'center', gap: 12, marginTop: 4}}>
+                            <span>{this.renderStars(rating)}</span>
                             {value.date ? <span style={{fontSize: 13, color: '#777'}}>{value.date}</span> : null}
                         </div>
                     </div>
@@ -78,9 +85,13 @@ export default class GoogleReviewDisplay extends React.Component<Props> {
                     }
                 </div>
 
-                <div style={{padding: 12, display: 'flex', flexDirection: 'column', gap: 8}}>
+                <Divider />
+
+                <Heading label="Bewertungstext" />
+
+                <div style={{display: 'flex', flexDirection: 'column', gap: 8, marginTop: 8}}>
                     {locales.length === 0
-                        ? <div style={{fontSize: 13, color: '#999', padding: '4px 4px'}}>{'Noch keine Sprachfassungen importiert.'}</div>
+                        ? <div style={{fontSize: 13, color: '#999'}}>{'Noch keine Sprachfassungen importiert.'}</div>
                         : locales.map((locale) => {
                             const t = translations[locale];
                             const ls = localeStyle(locale);
