@@ -157,7 +157,34 @@ Der Command importiert neue Bewertungen (≥ 4 Sterne) und aktualisiert bei bere
 Der Command ruft die Bewertungen **je Webspace-Locale** ab (ermittelt automatisch über den Sulu `WebspaceManager`). Für jede konfigurierte Sprache wird Googles übersetzte Fassung des Bewertungstextes sowie die lokalisierte Zeitangabe gespeichert — alles in **derselben** Datenbankzeile. Eine Bewertung bleibt damit unabhängig von der Sprachenanzahl **ein einziger Eintrag im Admin**.
 
 - Zusätzlich werden der **Originaltext** und dessen Sprache gespeichert; das Frontend nutzt sie als Fallback, wenn für die aktuelle Locale keine Übersetzung vorliegt.
-- Kommt später eine Sprache im Webspace hinzu, wird sie beim nächsten Import-Lauf automatisch ergänzt — **ohne** Datenbank-Migration (die Übersetzungen liegen in einer JSON-Spalte).
+- Kommt später eine Sprache im Webspace hinzu, wird sie beim nächsten Import-Lauf automatisch ergänzt — **ohne** Datenbank-Migration (die Übersetzungen liegen in einer JSON-Spalte). Das gilt jedoch nur für Bewertungen, die Google aktuell zurückliefert (max. 5). Ältere Bewertungen außerhalb dieses Fensters werden über den Nachübersetzungs-Command abgedeckt (siehe unten).
+
+### Fehlende Übersetzungen nachfüllen (optional)
+
+Da Google nur die neuesten ~5 Bewertungen liefert, erhalten ältere Bewertungen bei einer **neu hinzugefügten** Sprache über den Import allein keine Übersetzung. Dafür gibt es einen separaten Command, der den gespeicherten Originaltext über einen Übersetzungsdienst in alle fehlenden Webspace-Sprachen übersetzt:
+
+```bash
+bin/adminconsole sulu:google-reviews:translate-missing
+```
+
+- Es werden **nur fehlende** Sprachfassungen ergänzt; vorhandene (z. B. von Google importierte) bleiben unangetastet.
+- Der Übersetzungsdienst ist eine **optionale** Abhängigkeit: Das Bundle definiert nur das Interface `Depa\SuluGoogleReviewsBundle\Translation\ReviewTranslatorInterface`. Ist kein Adapter gebunden, bricht der Command mit einem Hinweis ab.
+- Für [`robole/sulu-ai-translator-bundle`](https://github.com/robole-dev/sulu-ai-translator-bundle) (DeepL) im konsumierenden Projekt einen Adapter binden:
+
+  ```php
+  // src/Service/DeeplReviewTranslator.php — implements ReviewTranslatorInterface,
+  // umschließt Robole\SuluAITranslatorBundle\Service\DeeplService
+  ```
+
+  ```yaml
+  # config/services.yaml
+  App\Service\DeeplReviewTranslator:
+      arguments:
+          $deeplService: '@ai_translator.deepl_service'
+
+  Depa\SuluGoogleReviewsBundle\Translation\ReviewTranslatorInterface:
+      alias: App\Service\DeeplReviewTranslator
+  ```
 
 ### Hinweise zur Google-API
 
