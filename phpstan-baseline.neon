@@ -1,10 +1,6 @@
 parameters:
     reportUnmatchedIgnoredErrors: false
     ignoreErrors:
-        # Doctrine EntityRepository::getEntityManager() is protected but required for flushing
-        -
-            message: '#Call to protected method getEntityManager\(\)#'
-            path: src/Command/FetchGoogleReviewsCommand.php
         # Sulu FieldDescriptorInterface API limitation
         -
             message: '#Call to an undefined method.*getEntityName#'

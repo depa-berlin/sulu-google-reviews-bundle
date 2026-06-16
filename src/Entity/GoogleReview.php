@@ -29,14 +29,30 @@ class GoogleReview
     #[ORM\Column(type: 'integer')]
     private int $rating = 0;
 
-    #[ORM\Column(type: 'text')]
-    private string $text = '';
-
     #[ORM\Column(type: 'integer')]
     private int $createdAtTimestamp = 0;
 
-    #[ORM\Column(length: 100)]
-    private string $relativeTimeDescription = '';
+    /**
+     * Authentic original review text as written by the author (language-independent).
+     */
+    #[ORM\Column(type: 'text', nullable: true)]
+    private ?string $originalText = null;
+
+    /**
+     * BCP-47 language code of the original text, e.g. "de", "en".
+     */
+    #[ORM\Column(length: 10, nullable: true)]
+    private ?string $originalLanguage = null;
+
+    /**
+     * Per-locale content keyed by the Sulu locale, e.g.
+     * ['de' => ['text' => '…', 'relativeTime' => 'vor 1 Monat'], 'en' => [...]].
+     * A new webspace locale simply adds a key — no schema change required.
+     *
+     * @var array<string, array{text: string, relativeTime: string}>
+     */
+    #[ORM\Column(type: 'json')]
+    private array $translations = [];
 
     #[ORM\Column(type: 'boolean')]
     private bool $blocked = false;
@@ -85,18 +101,6 @@ class GoogleReview
         return $this;
     }
 
-    public function getText(): string
-    {
-        return $this->text;
-    }
-
-    public function setText(string $text): static
-    {
-        $this->text = $text;
-
-        return $this;
-    }
-
     public function getCreatedAtTimestamp(): int
     {
         return $this->createdAtTimestamp;
@@ -109,16 +113,84 @@ class GoogleReview
         return $this;
     }
 
-    public function getRelativeTimeDescription(): string
+    public function getOriginalText(): ?string
     {
-        return $this->relativeTimeDescription;
+        return $this->originalText;
     }
 
-    public function setRelativeTimeDescription(string $relativeTimeDescription): static
+    public function setOriginalText(?string $originalText): static
     {
-        $this->relativeTimeDescription = $relativeTimeDescription;
+        $this->originalText = $originalText;
 
         return $this;
+    }
+
+    public function getOriginalLanguage(): ?string
+    {
+        return $this->originalLanguage;
+    }
+
+    public function setOriginalLanguage(?string $originalLanguage): static
+    {
+        $this->originalLanguage = $originalLanguage;
+
+        return $this;
+    }
+
+    /**
+     * @return array<string, array{text: string, relativeTime: string}>
+     */
+    public function getTranslations(): array
+    {
+        return $this->translations;
+    }
+
+    /**
+     * @param array<string, array{text: string, relativeTime: string}> $translations
+     */
+    public function setTranslations(array $translations): static
+    {
+        $this->translations = $translations;
+
+        return $this;
+    }
+
+    public function setTranslation(string $locale, string $text, string $relativeTime): static
+    {
+        $this->translations[$locale] = ['text' => $text, 'relativeTime' => $relativeTime];
+
+        return $this;
+    }
+
+    /**
+     * Review text for the given locale, falling back to the original text.
+     */
+    public function getText(?string $locale = null): string
+    {
+        if (null !== $locale && isset($this->translations[$locale]['text'])) {
+            return $this->translations[$locale]['text'];
+        }
+
+        return $this->originalText ?? '';
+    }
+
+    /**
+     * Relative time description ("vor 1 Monat") for the given locale, with a
+     * fallback to any stored description.
+     */
+    public function getRelativeTime(?string $locale = null): string
+    {
+        if (null !== $locale && isset($this->translations[$locale]['relativeTime'])) {
+            return $this->translations[$locale]['relativeTime'];
+        }
+
+        foreach ($this->translations as $translation) {
+            if ('' !== $translation['relativeTime']) {
+                return $translation['relativeTime'];
+            }
+        }
+
+        return '';
     }
 
     public function isBlocked(): bool
@@ -146,7 +218,7 @@ class GoogleReview
     }
 
     /**
-     * @return array{id: int|null, authorName: string, profilePhotoUrl: string|null, rating: int, text: string, createdAtTimestamp: int, relativeTimeDescription: string, blocked: bool, sortOrder: int}
+     * @return array{id: int|null, authorName: string, profilePhotoUrl: string|null, rating: int, text: string, originalLanguage: string|null, createdAtTimestamp: int, relativeTimeDescription: string, blocked: bool, sortOrder: int}
      */
     public function mapToArray(): array
     {
@@ -155,9 +227,10 @@ class GoogleReview
             'authorName'              => $this->authorName,
             'profilePhotoUrl'         => $this->profilePhotoUrl,
             'rating'                  => $this->rating,
-            'text'                    => $this->text,
+            'text'                    => $this->getText(),
+            'originalLanguage'        => $this->originalLanguage,
             'createdAtTimestamp'      => $this->createdAtTimestamp,
-            'relativeTimeDescription' => $this->relativeTimeDescription,
+            'relativeTimeDescription' => $this->getRelativeTime(),
             'blocked'                 => $this->blocked,
             'sortOrder'               => $this->sortOrder,
         ];

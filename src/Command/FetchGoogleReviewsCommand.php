@@ -6,6 +6,7 @@ namespace Depa\SuluGoogleReviewsBundle\Command;
 
 use Depa\SuluGoogleReviewsBundle\Entity\GoogleReview;
 use Depa\SuluGoogleReviewsBundle\Repository\GoogleReviewRepository;
+use Sulu\Component\Webspace\Manager\WebspaceManagerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -16,7 +17,7 @@ use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 #[AsCommand(
     name: 'sulu:google-reviews:fetch',
-    description: 'Fetches Google Places reviews (≥4 stars) and stores new ones in the database.'
+    description: 'Fetches Google Places reviews (≥4 stars) per webspace locale and stores them in the database.'
 )]
 class FetchGoogleReviewsCommand extends Command
 {
@@ -25,6 +26,7 @@ class FetchGoogleReviewsCommand extends Command
     public function __construct(
         private readonly HttpClientInterface $httpClient,
         private readonly GoogleReviewRepository $repository,
+        private readonly WebspaceManagerInterface $webspaceManager,
         private readonly string $apiKey,
         private readonly string $placeId,
     ) {
@@ -41,92 +43,134 @@ class FetchGoogleReviewsCommand extends Command
             return Command::FAILURE;
         }
 
-        try {
-            $response = $this->httpClient->request('GET', self::API_URL . '/' . \rawurlencode($this->placeId), [
-                'headers' => [
-                    'X-Goog-Api-Key'   => $this->apiKey,
-                    'X-Goog-FieldMask' => 'reviews',
-                ],
-                'query' => [
-                    'languageCode' => 'de',
-                ],
-            ]);
-
-            $statusCode = $response->getStatusCode();
-            $data = $response->toArray(false);
-        } catch (TransportExceptionInterface $e) {
-            $io->error('Google Places API nicht erreichbar: ' . $e->getMessage());
-
-            return Command::FAILURE;
-        } catch (\Exception $e) {
-            $io->error('Fehler beim Abrufen der API-Antwort: ' . $e->getMessage());
-
-            return Command::FAILURE;
+        $locales = array_values(array_unique($this->webspaceManager->getAllLocales()));
+        if ([] === $locales) {
+            $locales = ['de'];
         }
 
-        if (200 !== $statusCode) {
-            $io->error(\sprintf(
-                'Google Places API Fehler (HTTP %d): %s',
-                $statusCode,
-                $data['error']['message'] ?? 'keine Fehlermeldung'
-            ));
-
-            return Command::FAILURE;
-        }
-
-        if (empty($data['reviews'])) {
-            $io->warning('Keine Bewertungen in der API-Antwort gefunden.');
-
-            return Command::SUCCESS;
-        }
-
-        $reviews = $data['reviews'];
+        /** @var array<string, GoogleReview> $seen distinct review (author|timestamp) within this run */
+        $seen = [];
+        /** @var array<string, true> $skippedKeys */
+        $skippedKeys = [];
         $imported = 0;
         $updated = 0;
         $skipped = 0;
+        $succeededLocales = [];
 
-        foreach ($reviews as $reviewData) {
-            $rating = (int) ($reviewData['rating'] ?? 0);
-            if ($rating < 4) {
-                ++$skipped;
+        foreach ($locales as $locale) {
+            try {
+                $response = $this->httpClient->request('GET', self::API_URL . '/' . \rawurlencode($this->placeId), [
+                    'headers' => [
+                        'X-Goog-Api-Key'   => $this->apiKey,
+                        'X-Goog-FieldMask' => 'reviews',
+                    ],
+                    'query' => [
+                        // Sulu-Locale (z. B. "de_at") in BCP-47 (z. B. "de-AT") umwandeln
+                        'languageCode' => \str_replace('_', '-', $locale),
+                    ],
+                ]);
+
+                $statusCode = $response->getStatusCode();
+                $data = $response->toArray(false);
+            } catch (TransportExceptionInterface $e) {
+                $io->warning(\sprintf('Sprache "%s": Google Places API nicht erreichbar: %s', $locale, $e->getMessage()));
+                continue;
+            } catch (\Exception $e) {
+                $io->warning(\sprintf('Sprache "%s": Fehler beim Abrufen der API-Antwort: %s', $locale, $e->getMessage()));
                 continue;
             }
 
-            $authorName = $reviewData['authorAttribution']['displayName'] ?? '';
-            $publishTime = $reviewData['publishTime'] ?? null;
-            $timestamp = null !== $publishTime ? (\strtotime($publishTime) ?: 0) : 0;
-
-            $existing = $this->repository->findOneBy([
-                'authorName'         => $authorName,
-                'createdAtTimestamp' => $timestamp,
-            ]);
-
-            $review = $existing ?? new GoogleReview();
-            $review->setAuthorName($authorName);
-            $review->setProfilePhotoUrl($reviewData['authorAttribution']['photoUri'] ?? null);
-            $review->setRating($rating);
-            $review->setText($reviewData['text']['text'] ?? '');
-            $review->setCreatedAtTimestamp($timestamp);
-            $review->setRelativeTimeDescription($reviewData['relativePublishTimeDescription'] ?? '');
-
-            $this->repository->save($review, false);
-
-            if (null === $existing) {
-                ++$imported;
-            } else {
-                ++$updated;
+            if (200 !== $statusCode) {
+                $io->warning(\sprintf(
+                    'Sprache "%s": Google Places API Fehler (HTTP %d): %s',
+                    $locale,
+                    $statusCode,
+                    $data['error']['message'] ?? 'keine Fehlermeldung'
+                ));
+                continue;
             }
+
+            $succeededLocales[] = $locale;
+
+            foreach ($data['reviews'] ?? [] as $reviewData) {
+                $rating = (int) ($reviewData['rating'] ?? 0);
+                $authorName = $reviewData['authorAttribution']['displayName'] ?? '';
+                $publishTime = $reviewData['publishTime'] ?? null;
+                $timestamp = null !== $publishTime ? (\strtotime($publishTime) ?: 0) : 0;
+                $key = $authorName . '|' . $timestamp;
+
+                if ($rating < 4) {
+                    if (!isset($skippedKeys[$key])) {
+                        $skippedKeys[$key] = true;
+                        ++$skipped;
+                    }
+                    continue;
+                }
+
+                if (isset($seen[$key])) {
+                    $review = $seen[$key];
+                } else {
+                    $existing = $this->repository->findOneBy([
+                        'authorName'         => $authorName,
+                        'createdAtTimestamp' => $timestamp,
+                    ]);
+
+                    $review = $existing ?? new GoogleReview();
+                    $review->setAuthorName($authorName);
+                    $review->setProfilePhotoUrl($reviewData['authorAttribution']['photoUri'] ?? null);
+                    $review->setRating($rating);
+                    $review->setCreatedAtTimestamp($timestamp);
+
+                    $this->repository->save($review, false);
+                    $seen[$key] = $review;
+
+                    if (null === $existing) {
+                        ++$imported;
+                    } else {
+                        ++$updated;
+                    }
+                }
+
+                // Originaltext: liefert die API nur, wenn der angezeigte Text übersetzt wurde.
+                $original = $reviewData['originalText'] ?? null;
+                if (null !== $original && isset($original['text'])) {
+                    $review->setOriginalText($original['text']);
+                    $review->setOriginalLanguage($original['languageCode'] ?? null);
+                } elseif (null === $review->getOriginalText()) {
+                    // Kein separater Originaltext → Text war bereits in Originalsprache
+                    $review->setOriginalText($reviewData['text']['text'] ?? '');
+                    $review->setOriginalLanguage($reviewData['text']['languageCode'] ?? null);
+                }
+
+                $review->setTranslation(
+                    $locale,
+                    $reviewData['text']['text'] ?? '',
+                    $reviewData['relativePublishTimeDescription'] ?? ''
+                );
+            }
+        }
+
+        if ([] === $succeededLocales) {
+            $io->error('Kein einziger Sprach-Abruf war erfolgreich. Es wurde nichts importiert.');
+
+            return Command::FAILURE;
         }
 
         if ($imported > 0 || $updated > 0) {
             try {
-                $this->repository->getEntityManager()->flush();
+                $this->repository->flush();
             } catch (\Doctrine\DBAL\Exception\UniqueConstraintViolationException) {
                 $io->warning('Einige Bewertungen wurden durch einen parallelen Import-Lauf bereits gespeichert und übersprungen.');
             }
         }
 
-        $io->success(\sprintf('Importiert: %d, Aktualisiert: %d, Übersprungen: %d', $imported, $updated, $skipped));
+        $io->success(\sprintf(
+            'Sprachen: %s | Neu: %d, Aktualisiert: %d, Übersprungen: %d',
+            \implode(', ', $succeededLocales),
+            $imported,
+            $updated,
+            $skipped
+        ));
 
         return Command::SUCCESS;
     }

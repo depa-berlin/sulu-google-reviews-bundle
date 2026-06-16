@@ -38,13 +38,13 @@
                                 {% endfor %}
                             </div>
 
-                            <p class="google-reviews__text">{{ review.text }}</p>
+                            <p class="google-reviews__text">{{ review.getText(app.request.locale) }}</p>
 
                             <time
                                 class="google-reviews__time"
                                 datetime="{{ review.createdAtTimestamp|date('Y-m-d') }}"
                             >
-                                {{ review.relativeTimeDescription }}
+                                {{ review.getRelativeTime(app.request.locale) }}
                             </time>
                         </div>
                     </div>

@@ -118,12 +118,20 @@ bin/adminconsole sulu:google-reviews:fetch
 0 3 * * * /path/to/project/bin/adminconsole sulu:google-reviews:fetch
 ```
 
-Der Command importiert neue Bewertungen (≥ 4 Sterne) und aktualisiert bei bereits vorhandenen Einträgen den Text, das Rating, das Profilbild und die Zeitangabe. Manuelle Moderationsfelder (Gesperrt, Eigene Reihenfolge) bleiben dabei erhalten.
+Der Command importiert neue Bewertungen (≥ 4 Sterne) und aktualisiert bei bereits vorhandenen Einträgen Text, Rating, Profilbild und Zeitangabe. Manuelle Moderationsfelder (Gesperrt, Eigene Reihenfolge) bleiben dabei erhalten.
+
+### Mehrsprachigkeit
+
+Der Command ruft die Bewertungen **je Webspace-Locale** ab (ermittelt automatisch über den Sulu `WebspaceManager`). Für jede konfigurierte Sprache wird Googles übersetzte Fassung des Bewertungstextes sowie die lokalisierte Zeitangabe gespeichert — alles in **derselben** Datenbankzeile. Eine Bewertung bleibt damit unabhängig von der Sprachenanzahl **ein einziger Eintrag im Admin**.
+
+- Zusätzlich werden der **Originaltext** und dessen Sprache gespeichert; das Frontend nutzt sie als Fallback, wenn für die aktuelle Locale keine Übersetzung vorliegt.
+- Kommt später eine Sprache im Webspace hinzu, wird sie beim nächsten Import-Lauf automatisch ergänzt — **ohne** Datenbank-Migration (die Übersetzungen liegen in einer JSON-Spalte).
 
 ### Hinweise zur Google-API
 
 - **Places API (New):** Das Bundle nutzt die aktuelle Places API (`places.googleapis.com/v1/places/{placeId}`) mit API-Key im Header (`X-Goog-Api-Key`) und FieldMask (`X-Goog-FieldMask: reviews`). Die alte „Places API (Legacy)" wird **nicht** verwendet, da sie für neue Google-Cloud-Projekte nicht mehr aktivierbar ist. In der Google Cloud Console muss die **„Places API (New)"** aktiviert sein.
-- **Maximal 5 Bewertungen pro Abruf:** Die Places API liefert höchstens 5 Bewertungen ohne Pagination und ohne Sortieroption. Erscheinen zwischen zwei Cron-Läufen mehr als 5 neue Bewertungen, kann es zu Lücken kommen. Der Abruf erfolgt mit `languageCode=de` für deutsche Bewertungstexte und Zeitangaben.
+- **Maximal 5 Bewertungen pro Abruf:** Die Places API liefert höchstens 5 Bewertungen ohne Pagination und ohne Sortieroption. Erscheinen zwischen zwei Cron-Läufen mehr als 5 neue Bewertungen, kann es zu Lücken kommen.
+- **API-Kosten:** Pro Webspace-Locale erfolgt **ein** API-Call (Place Details mit `reviews` ist der kostenpflichtige Enterprise-SKU). Bei z. B. drei Sprachen verdreifacht sich die Anzahl der Abrufe pro Import-Lauf.
 
 ---
 

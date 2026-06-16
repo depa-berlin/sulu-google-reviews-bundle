@@ -22,9 +22,12 @@ class GoogleReviewTest extends TestCase
         self::assertSame('', $this->review->getAuthorName());
         self::assertNull($this->review->getProfilePhotoUrl());
         self::assertSame(0, $this->review->getRating());
+        self::assertNull($this->review->getOriginalText());
+        self::assertNull($this->review->getOriginalLanguage());
+        self::assertSame([], $this->review->getTranslations());
         self::assertSame('', $this->review->getText());
         self::assertSame(0, $this->review->getCreatedAtTimestamp());
-        self::assertSame('', $this->review->getRelativeTimeDescription());
+        self::assertSame('', $this->review->getRelativeTime());
         self::assertFalse($this->review->isBlocked());
         self::assertSame(0, $this->review->getSortOrder());
     }
@@ -34,33 +37,41 @@ class GoogleReviewTest extends TestCase
         self::assertSame($this->review, $this->review->setAuthorName('Test'));
         self::assertSame($this->review, $this->review->setProfilePhotoUrl('https://example.com/photo.jpg'));
         self::assertSame($this->review, $this->review->setRating(5));
-        self::assertSame($this->review, $this->review->setText('Great service!'));
+        self::assertSame($this->review, $this->review->setOriginalText('Great service!'));
+        self::assertSame($this->review, $this->review->setOriginalLanguage('en'));
+        self::assertSame($this->review, $this->review->setTranslation('de', 'Toller Service!', 'vor 3 Monaten'));
         self::assertSame($this->review, $this->review->setCreatedAtTimestamp(1700000000));
-        self::assertSame($this->review, $this->review->setRelativeTimeDescription('vor 3 Monaten'));
         self::assertSame($this->review, $this->review->setBlocked(true));
         self::assertSame($this->review, $this->review->setSortOrder(1));
     }
 
-    public function testGettersReturnSetValues(): void
+    public function testGetTextReturnsLocaleSpecificTranslation(): void
     {
         $this->review
-            ->setAuthorName('Maria Schneider')
-            ->setProfilePhotoUrl('https://example.com/photo.jpg')
-            ->setRating(5)
-            ->setText('Excellent!')
-            ->setCreatedAtTimestamp(1700000000)
-            ->setRelativeTimeDescription('vor 3 Monaten')
-            ->setBlocked(true)
-            ->setSortOrder(2);
+            ->setOriginalText('Super magasin')
+            ->setOriginalLanguage('fr')
+            ->setTranslation('de', 'Tolles Geschäft', 'vor 2 Monaten')
+            ->setTranslation('en', 'Great shop', '2 months ago');
 
-        self::assertSame('Maria Schneider', $this->review->getAuthorName());
-        self::assertSame('https://example.com/photo.jpg', $this->review->getProfilePhotoUrl());
-        self::assertSame(5, $this->review->getRating());
-        self::assertSame('Excellent!', $this->review->getText());
-        self::assertSame(1700000000, $this->review->getCreatedAtTimestamp());
-        self::assertSame('vor 3 Monaten', $this->review->getRelativeTimeDescription());
-        self::assertTrue($this->review->isBlocked());
-        self::assertSame(2, $this->review->getSortOrder());
+        self::assertSame('Tolles Geschäft', $this->review->getText('de'));
+        self::assertSame('Great shop', $this->review->getText('en'));
+        self::assertSame('vor 2 Monaten', $this->review->getRelativeTime('de'));
+        self::assertSame('2 months ago', $this->review->getRelativeTime('en'));
+    }
+
+    public function testGetTextFallsBackToOriginalForUnknownLocale(): void
+    {
+        $this->review
+            ->setOriginalText('Super magasin')
+            ->setOriginalLanguage('fr')
+            ->setTranslation('de', 'Tolles Geschäft', 'vor 2 Monaten');
+
+        // Keine italienische Übersetzung -> Fallback auf Originaltext
+        self::assertSame('Super magasin', $this->review->getText('it'));
+        // Ohne Locale ebenfalls Originaltext
+        self::assertSame('Super magasin', $this->review->getText());
+        // relativeTime fällt auf eine vorhandene Beschreibung zurück
+        self::assertSame('vor 2 Monaten', $this->review->getRelativeTime('it'));
     }
 
     public function testProfilePhotoUrlNullable(): void
@@ -76,9 +87,10 @@ class GoogleReviewTest extends TestCase
         $this->review
             ->setAuthorName('Thomas Weber')
             ->setRating(4)
-            ->setText('Very good.')
+            ->setOriginalText('Very good.')
+            ->setOriginalLanguage('en')
+            ->setTranslation('de', 'Sehr gut.', 'vor 5 Monaten')
             ->setCreatedAtTimestamp(1700000000)
-            ->setRelativeTimeDescription('vor 5 Monaten')
             ->setBlocked(false)
             ->setSortOrder(3);
 
@@ -89,6 +101,7 @@ class GoogleReviewTest extends TestCase
         self::assertArrayHasKey('profilePhotoUrl', $array);
         self::assertArrayHasKey('rating', $array);
         self::assertArrayHasKey('text', $array);
+        self::assertArrayHasKey('originalLanguage', $array);
         self::assertArrayHasKey('createdAtTimestamp', $array);
         self::assertArrayHasKey('relativeTimeDescription', $array);
         self::assertArrayHasKey('blocked', $array);
@@ -100,9 +113,9 @@ class GoogleReviewTest extends TestCase
         $this->review
             ->setAuthorName('Thomas Weber')
             ->setRating(4)
-            ->setText('Very good.')
+            ->setOriginalText('Very good.')
+            ->setOriginalLanguage('en')
             ->setCreatedAtTimestamp(1700000000)
-            ->setRelativeTimeDescription('vor 5 Monaten')
             ->setBlocked(false)
             ->setSortOrder(3);
 
@@ -111,6 +124,7 @@ class GoogleReviewTest extends TestCase
         self::assertSame('Thomas Weber', $array['authorName']);
         self::assertSame(4, $array['rating']);
         self::assertSame('Very good.', $array['text']);
+        self::assertSame('en', $array['originalLanguage']);
         self::assertSame(1700000000, $array['createdAtTimestamp']);
         self::assertFalse($array['blocked']);
         self::assertSame(3, $array['sortOrder']);
