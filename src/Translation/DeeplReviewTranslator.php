@@ -19,10 +19,8 @@ class DeeplReviewTranslator implements ReviewTranslatorInterface
     private const TARGET_MAP = [
         'en'    => 'EN-GB',
         'en-us' => 'EN-US',
-        'en-gb' => 'EN-GB',
         'pt'    => 'PT-PT',
         'pt-br' => 'PT-BR',
-        'pt-pt' => 'PT-PT',
     ];
 
     /**
