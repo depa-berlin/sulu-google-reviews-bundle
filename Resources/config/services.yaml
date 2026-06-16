@@ -9,6 +9,7 @@ services:
         exclude:
             - '../../src/Entity/'
             - '../../src/DependencyInjection/'
+            - '../../src/Translation/'
             - '../../src/DepaGoogleReviewsBundle.php'
 
     Depa\SuluGoogleReviewsBundle\Admin\GoogleReviewsAdmin:

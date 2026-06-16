@@ -168,23 +168,8 @@ bin/adminconsole sulu:google-reviews:translate-missing
 ```
 
 - Es werden **nur fehlende** Sprachfassungen ergänzt; vorhandene (z. B. von Google importierte) bleiben unangetastet.
-- Der Übersetzungsdienst ist eine **optionale** Abhängigkeit: Das Bundle definiert nur das Interface `Depa\SuluGoogleReviewsBundle\Translation\ReviewTranslatorInterface`. Ist kein Adapter gebunden, bricht der Command mit einem Hinweis ab.
-- Für [`robole/sulu-ai-translator-bundle`](https://github.com/robole-dev/sulu-ai-translator-bundle) (DeepL) im konsumierenden Projekt einen Adapter binden:
-
-  ```php
-  // src/Service/DeeplReviewTranslator.php — implements ReviewTranslatorInterface,
-  // umschließt Robole\SuluAITranslatorBundle\Service\DeeplService
-  ```
-
-  ```yaml
-  # config/services.yaml
-  App\Service\DeeplReviewTranslator:
-      arguments:
-          $deeplService: '@ai_translator.deepl_service'
-
-  Depa\SuluGoogleReviewsBundle\Translation\ReviewTranslatorInterface:
-      alias: App\Service\DeeplReviewTranslator
-  ```
+- Der Übersetzungsdienst ist eine **optionale** Abhängigkeit. Ist [`robole/sulu-ai-translator-bundle`](https://github.com/robole-dev/sulu-ai-translator-bundle) (DeepL) installiert, verdrahtet das Bundle den passenden Adapter **automatisch** (per Compiler-Pass) — **keine** Konfiguration im Projekt nötig. Fehlt das Bundle, bricht der Command mit einem Hinweis ab.
+- Ein eigener Übersetzungsdienst lässt sich einbinden, indem im Projekt `Depa\SuluGoogleReviewsBundle\Translation\ReviewTranslatorInterface` an eine eigene Implementierung gebunden wird; diese hat dann Vorrang vor der DeepL-Automatik.
 
 ### Hinweise zur Google-API
 
