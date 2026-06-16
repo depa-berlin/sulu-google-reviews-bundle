@@ -33,7 +33,12 @@ class GoogleReviewRepository extends ServiceEntityRepository
 
         match ($sort) {
             self::SORT_RATING => $qb->orderBy('r.rating', 'DESC')->addOrderBy('r.createdAtTimestamp', 'DESC'),
-            self::SORT_CUSTOM => $qb->orderBy('r.sortOrder', 'ASC')->addOrderBy('r.createdAtTimestamp', 'DESC'),
+            // sortOrder 0 = "keine Priorität": diese Reviews ans Ende, sonst nach sortOrder aufsteigend
+            self::SORT_CUSTOM => $qb
+                ->addSelect('CASE WHEN r.sortOrder = 0 THEN 1 ELSE 0 END AS HIDDEN hasNoPriority')
+                ->orderBy('hasNoPriority', 'ASC')
+                ->addOrderBy('r.sortOrder', 'ASC')
+                ->addOrderBy('r.createdAtTimestamp', 'DESC'),
             default           => $qb->orderBy('r.createdAtTimestamp', 'DESC'),
         };
 
@@ -55,18 +60,25 @@ class GoogleReviewRepository extends ServiceEntityRepository
     /**
      * Shifts all reviews (except $excludeId) with sortOrder >= $fromPosition up by one.
      * Call this before setting the new sortOrder on the target review.
+     *
+     * Die Reviews werden über die Unit of Work geladen und verändert (nicht per
+     * Bulk-DQL-UPDATE), damit die Identity Map konsistent bleibt. Das Persistieren
+     * übernimmt der abschließende flush() des Aufrufers (innerhalb der Transaktion).
      */
     public function shiftSortOrderFrom(int $fromPosition, int $excludeId): void
     {
-        $this->getEntityManager()
-            ->createQuery(
-                'UPDATE Depa\SuluGoogleReviewsBundle\Entity\GoogleReview r
-                 SET r.sortOrder = r.sortOrder + 1
-                 WHERE r.sortOrder >= :from AND r.id != :excludeId'
-            )
+        /** @var GoogleReview[] $reviews */
+        $reviews = $this->createQueryBuilder('r')
+            ->where('r.sortOrder >= :from')
+            ->andWhere('r.id != :excludeId')
             ->setParameter('from', $fromPosition)
             ->setParameter('excludeId', $excludeId)
-            ->execute();
+            ->getQuery()
+            ->getResult();
+
+        foreach ($reviews as $review) {
+            $review->setSortOrder($review->getSortOrder() + 1);
+        }
     }
 
     public function wrapInTransaction(callable $func): mixed
