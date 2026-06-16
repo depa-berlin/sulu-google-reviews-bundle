@@ -44,9 +44,11 @@ class FetchGoogleReviewsCommand extends Command
         try {
             $response = $this->httpClient->request('GET', self::API_URL, [
                 'query' => [
-                    'place_id' => $this->placeId,
-                    'fields'   => 'reviews',
-                    'key'      => $this->apiKey,
+                    'place_id'     => $this->placeId,
+                    'fields'       => 'reviews',
+                    'reviews_sort' => 'newest',
+                    'language'     => 'de',
+                    'key'          => $this->apiKey,
                 ],
             ]);
 
