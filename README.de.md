@@ -26,7 +26,7 @@ Symfony-Bundle für Sulu CMS 3, das Google-Bewertungen über die Places API abru
 ### 1. Bundle per Composer installieren
 
 ```bash
-composer require depa-berlin/sulu-google-reviews-bundle
+composer require depa/sulu-google-reviews-bundle
 ```
 
 ### 2. Bundle registrieren
@@ -193,8 +193,10 @@ Zeigt alle importierten Bewertungen mit Autor, Sternebewertung, Datum, Sperrstat
 
 | Bereich | Felder | Bearbeitbar |
 |---|---|---|
-| **Bewertung** (von Google importiert) | Autor, Sterne, Datum, Zeitangabe, Text, Profilbild-URL | Nein |
+| **Bewertung** (von Google importiert) | read-only Anzeige: Autor, Sterne, Datum, Originalsprache und der Bewertungstext je Webspace-Sprache | Nein |
 | **Moderation & Darstellung** | Bewertung sperren, Reihenfolge | Ja |
+
+Die Bewertung selbst wird über den read-only Admin-Feldtyp `google_review_display` dargestellt (siehe Installation, Schritt 7).
 
 #### Bewertung sperren
 
@@ -204,7 +206,7 @@ Gesperrte Bewertungen werden im Frontend nicht angezeigt und tauchen in `get_sto
 
 Das Feld **Reihenfolge** wird verwendet, wenn im Block die Sortierung „Eigene Reihenfolge" gewählt ist.
 
-- `0` = keine Priorität (wird bei Gleichstand nach Datum sortiert)
+- `0` = keine Priorität (erscheint hinter den priorisierten Einträgen, untereinander nach Datum)
 - `1`, `2`, `3`, … = aufsteigende Anzeigereihenfolge
 
 Wird eine bereits vergebene Positions-Nummer eingetragen, rücken alle anderen Einträge an dieser Stelle automatisch um eine Position nach hinten.
@@ -229,7 +231,7 @@ Das Bundle stellt die Twig-Funktion `get_stored_google_reviews()` bereit, die un
 ```twig
 {% for review in get_stored_google_reviews(3, 'rating') %}
     <p>{{ review.authorName }}: {{ review.rating }} Sterne</p>
-    <p>{{ review.text }}</p>
+    <p>{{ review.getText(app.request.locale) }}</p>
 {% endfor %}
 ```
 
@@ -240,11 +242,15 @@ Das Bundle stellt die Twig-Funktion `get_stored_google_reviews()` bereit, die un
 | `authorName` | `string` | Name des Rezensenten |
 | `profilePhotoUrl` | `string\|null` | URL des Google-Profilbilds |
 | `rating` | `int` | Sternebewertung (4 oder 5) |
-| `text` | `string` | Bewertungstext |
+| `getText(locale)` | `string` | Bewertungstext für die Locale, Fallback auf den Originaltext |
+| `getRelativeTime(locale)` | `string` | Zeitangabe für die Locale (z. B. „vor 3 Monaten") |
+| `originalText` | `string\|null` | Originaltext in der Originalsprache (Fallback) |
+| `originalLanguage` | `string\|null` | Sprachcode des Originaltexts |
 | `createdAtTimestamp` | `int` | Erstellungsdatum als Unix-Timestamp |
-| `relativeTimeDescription` | `string` | Zeitangabe von Google (z. B. „vor 3 Monaten") |
 | `blocked` | `bool` | Sperrstatus (bei direktem Repository-Zugriff) |
 | `sortOrder` | `int` | Eigene Sortierungsposition |
+
+> Hinweis: Text und Zeitangabe sind sprachabhängig. Im Template die aktuelle Locale übergeben — `review.getText(app.request.locale)` bzw. `review.getRelativeTime(app.request.locale)`. `review.text` ohne Argument liefert den Originaltext als Fallback.
 
 ---
 
@@ -291,21 +297,32 @@ Twig sucht Templates zuerst im Hauptprojekt, dann in den Bundles — deine Versi
 ```
 packages/sulu-google-reviews-bundle/
 ├── src/
-│   ├── Admin/GoogleReviewsAdmin.php          # Sulu-Navigation & Views
-│   ├── Command/FetchGoogleReviewsCommand.php  # Import-Command
+│   ├── Admin/GoogleReviewsAdmin.php                   # Sulu-Navigation & Views
+│   ├── Command/
+│   │   ├── FetchGoogleReviewsCommand.php               # Import je Webspace-Locale
+│   │   └── TranslateMissingReviewsCommand.php          # Nachübersetzen fehlender Sprachen
 │   ├── Controller/Admin/GoogleReviewController.php
 │   ├── DependencyInjection/
-│   │   ├── DepaGoogleReviewsExtension.php     # Auto-Konfiguration per prepend
+│   │   ├── Compiler/TranslatorIntegrationPass.php      # DeepL-Adapter optional verdrahten
+│   │   ├── DepaGoogleReviewsExtension.php              # Auto-Konfiguration per prepend
 │   │   └── Configuration.php
 │   ├── Entity/GoogleReview.php
 │   ├── Repository/GoogleReviewRepository.php
-│   └── Twig/GoogleReviewsTwigExtension.php
+│   ├── Translation/
+│   │   ├── ReviewTranslatorInterface.php               # optionaler Übersetzer-Contract
+│   │   ├── DeeplReviewTranslator.php                   # DeepL-Adapter (duck-typed)
+│   │   └── DeeplTranslatorClientInterface.php
+│   ├── Twig/GoogleReviewsTwigExtension.php
+│   └── DepaGoogleReviewsBundle.php                     # registriert den Compiler-Pass
 └── Resources/
     ├── config/
     │   ├── forms/google_review_details.xml
     │   ├── lists/google_reviews.xml
     │   ├── routes_admin.yaml
     │   └── services.yaml
+    ├── js/
+    │   ├── index.js                                    # Feldtyp-Registrierung
+    │   └── GoogleReviewDisplay.js                      # read-only Admin-Feldtyp
     └── views/
         └── includes/blocks/
             └── block--google-reviews.html.twig
@@ -316,4 +333,4 @@ Die Bundle-Extension registriert automatisch per `PrependExtensionInterface`:
 - Doctrine ORM: Entity-Mapping
 - Twig: Views-Verzeichnis
 
-Dadurch sind **keine manuellen Einträge** in `sulu_admin.yaml` oder `twig.yaml` erforderlich.
+Dadurch sind **keine manuellen Einträge** in `sulu_admin.yaml` oder `twig.yaml` erforderlich. Lediglich der Admin-Feldtyp muss projektseitig in den Webpack-Build eingebunden werden (siehe Installation, Schritt 7).
