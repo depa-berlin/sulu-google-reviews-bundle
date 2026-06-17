@@ -218,7 +218,7 @@ class GoogleReview
      * Structured read-only payload consumed by the admin display field type
      * (google_review_display).
      *
-     * @return array{authorName: string, profilePhotoUrl: string|null, rating: int, date: string, originalLanguage: string|null, translations: array<string, array{text: string, relativeTime: string}>}
+     * @return array{authorName: string, profilePhotoUrl: string|null, rating: int, date: string, timestamp: int, originalLanguage: string|null, translations: array<string, array{text: string, relativeTime: string}>}
      */
     public function toDisplayArray(): array
     {
@@ -227,13 +227,14 @@ class GoogleReview
             'profilePhotoUrl'  => $this->profilePhotoUrl,
             'rating'           => $this->rating,
             'date'             => $this->createdAtTimestamp > 0 ? \date('d.m.Y', $this->createdAtTimestamp) : '',
+            'timestamp'        => $this->createdAtTimestamp,
             'originalLanguage' => $this->originalLanguage,
             'translations'     => $this->translations,
         ];
     }
 
     /**
-     * @return array{id: int|null, authorName: string, profilePhotoUrl: string|null, rating: int, text: string, reviewDisplay: array{authorName: string, profilePhotoUrl: string|null, rating: int, date: string, originalLanguage: string|null, translations: array<string, array{text: string, relativeTime: string}>}, originalText: string|null, originalLanguage: string|null, createdAtTimestamp: int, relativeTimeDescription: string, blocked: bool, sortOrder: int, moderation: array{blocked: bool, sortOrder: int}}
+     * @return array{id: int|null, authorName: string, profilePhotoUrl: string|null, rating: int, text: string, reviewDisplay: array{authorName: string, profilePhotoUrl: string|null, rating: int, date: string, timestamp: int, originalLanguage: string|null, translations: array<string, array{text: string, relativeTime: string}>}, originalText: string|null, originalLanguage: string|null, createdAtTimestamp: int, relativeTimeDescription: string, blocked: bool, sortOrder: int, moderation: array{blocked: bool, sortOrder: int}}
      */
     public function mapToArray(): array
     {

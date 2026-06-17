@@ -44,7 +44,7 @@
                                 class="google-reviews__time"
                                 datetime="{{ review.createdAtTimestamp|date('Y-m-d') }}"
                             >
-                                {{ review.getRelativeTime(app.request.locale) }}
+                                {{ google_review_relative_time(review.createdAtTimestamp, app.request.locale) }}
                             </time>
                         </div>
                     </div>

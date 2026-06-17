@@ -13,6 +13,7 @@ type ReviewValue = {
     originalLanguage?: ?string,
     profilePhotoUrl?: ?string,
     rating?: number,
+    timestamp?: number,
     translations?: {[locale: string]: Translation},
 };
 
@@ -26,8 +27,42 @@ const LOCALE_COLORS = {
     fr: {background: '#FBEAF0', color: '#993556'},
 };
 
+const RELATIVE_UNITS = [
+    ['year', 31536000],
+    ['month', 2592000],
+    ['week', 604800],
+    ['day', 86400],
+    ['hour', 3600],
+    ['minute', 60],
+];
+
 function localeStyle(locale: string) {
     return LOCALE_COLORS[locale] || {background: '#F1EFE8', color: '#444441'};
+}
+
+// Always-current relative time computed from the timestamp (per locale), instead of
+// the stored Google string which goes stale.
+function relativeTime(timestamp: ?number, locale: string): string {
+    if (!timestamp) {
+        return '';
+    }
+
+    let formatter;
+    try {
+        formatter = new Intl.RelativeTimeFormat(locale, {numeric: 'always'});
+    } catch (e) {
+        formatter = new Intl.RelativeTimeFormat('en', {numeric: 'always'});
+    }
+
+    const seconds = Math.max(0, Math.floor(Date.now() / 1000) - timestamp);
+
+    for (const [unit, unitSeconds] of RELATIVE_UNITS) {
+        if (seconds >= unitSeconds) {
+            return formatter.format(-Math.floor(seconds / unitSeconds), unit);
+        }
+    }
+
+    return formatter.format(0, 'second');
 }
 
 export default class GoogleReviewDisplay extends React.Component<Props> {
@@ -98,13 +133,14 @@ export default class GoogleReviewDisplay extends React.Component<Props> {
                         : locales.map((locale) => {
                             const t = translations[locale];
                             const ls = localeStyle(locale);
+                            const relative = relativeTime(value.timestamp, locale);
                             return (
                                 <div key={locale} style={{border: '1px solid #f0f0f0', borderRadius: 4, padding: '10px 12px'}}>
                                     <div style={{display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6}}>
                                         <span style={{background: ls.background, color: ls.color, fontSize: 11, fontWeight: 600, padding: '2px 8px', borderRadius: 4}}>
                                             {locale.toUpperCase()}
                                         </span>
-                                        {t.relativeTime ? <span style={{fontSize: 12, color: '#999'}}>{t.relativeTime}</span> : null}
+                                        {relative ? <span style={{fontSize: 12, color: '#999'}}>{relative}</span> : null}
                                     </div>
                                     <div style={{fontSize: 14, lineHeight: 1.6, color: '#333'}}>{t.text}</div>
                                 </div>
