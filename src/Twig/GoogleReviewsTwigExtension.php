@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Depa\SuluGoogleReviewsBundle\Twig;
 
+use Carbon\CarbonImmutable;
 use Depa\SuluGoogleReviewsBundle\Repository\GoogleReviewRepository;
 use Twig\Attribute\AsTwigFunction;
 
@@ -34,7 +35,7 @@ class GoogleReviewsTwigExtension
     /**
      * Locale-aware relative time computed from the stored timestamp (always current,
      * unlike Google's relativePublishTimeDescription, which is a point-in-time string).
-     * Phrasing is provided for de/en; other locales fall back to English.
+     * Uses Carbon's diffForHumans(), which is localized for ~280 locales.
      */
     #[AsTwigFunction(name: 'google_review_relative_time')]
     public function relativeTime(int $timestamp, ?string $locale = null): string
@@ -43,61 +44,32 @@ class GoogleReviewsTwigExtension
             return '';
         }
 
-        $diff = \max(0, \time() - $timestamp);
-        $lang = \strtolower(\explode('_', \str_replace('-', '_', (string) $locale))[0]);
+        $date = CarbonImmutable::createFromTimestamp($timestamp);
 
-        $units = [
-            'year'   => 31536000,
-            'month'  => 2592000,
-            'week'   => 604800,
-            'day'    => 86400,
-            'hour'   => 3600,
-            'minute' => 60,
-        ];
-
-        foreach ($units as $unit => $seconds) {
-            if ($diff >= $seconds) {
-                return $this->phrase($lang, \intdiv($diff, $seconds), $unit);
-            }
+        $normalized = $this->normalizeLocale($locale);
+        if (null !== $normalized) {
+            $date = $date->settings(['locale' => $normalized]);
         }
 
-        return $this->phrase($lang, 0, 'now');
+        return $date->diffForHumans();
     }
 
-    private function phrase(string $lang, int $amount, string $unit): string
+    /**
+     * Normalizes a Sulu locale to Carbon's expected form, e.g. "de_at" -> "de_AT".
+     */
+    private function normalizeLocale(?string $locale): ?string
     {
-        $now = ['de' => 'gerade eben', 'en' => 'just now'];
-
-        /** @var array<string, array<string, array{0: string, 1: string}>> $forms */
-        $forms = [
-            'de' => [
-                'minute' => ['vor %d Minute', 'vor %d Minuten'],
-                'hour'   => ['vor %d Stunde', 'vor %d Stunden'],
-                'day'    => ['vor %d Tag', 'vor %d Tagen'],
-                'week'   => ['vor %d Woche', 'vor %d Wochen'],
-                'month'  => ['vor %d Monat', 'vor %d Monaten'],
-                'year'   => ['vor %d Jahr', 'vor %d Jahren'],
-            ],
-            'en' => [
-                'minute' => ['%d minute ago', '%d minutes ago'],
-                'hour'   => ['%d hour ago', '%d hours ago'],
-                'day'    => ['%d day ago', '%d days ago'],
-                'week'   => ['%d week ago', '%d weeks ago'],
-                'month'  => ['%d month ago', '%d months ago'],
-                'year'   => ['%d year ago', '%d years ago'],
-            ],
-        ];
-
-        if ('now' === $unit) {
-            return $now[$lang] ?? $now['en'];
+        if (null === $locale || '' === $locale) {
+            return null;
         }
 
-        $set = $forms[$lang] ?? $forms['en'];
+        $parts = \preg_split('/[-_]/', $locale) ?: [];
+        $language = \strtolower($parts[0] ?? '');
 
-        if (!isset($set[$unit])) {
-            return '';
+        if ('' === $language) {
+            return null;
         }
 
-        return \sprintf(1 === $amount ? $set[$unit][0] : $set[$unit][1], $amount);
+        return isset($parts[1]) ? $language . '_' . \strtoupper($parts[1]) : $language;
     }
 }

@@ -20,38 +20,34 @@ class GoogleReviewsTwigExtensionTest extends TestCase
         self::assertSame('', $this->extension()->relativeTime(0, 'de'));
     }
 
-    public function testRelativeTimeMonthsGerman(): void
+    public function testRelativeTimeGerman(): void
     {
-        $sevenMonths = \time() - (7 * 2592000) - 10;
+        $result = $this->extension()->relativeTime(\time() - (210 * 86400), 'de');
 
-        self::assertSame('vor 7 Monaten', $this->extension()->relativeTime($sevenMonths, 'de'));
+        self::assertStringContainsString('Monat', $result);
+        self::assertStringContainsString('vor', $result);
     }
 
-    public function testRelativeTimeMonthsEnglish(): void
+    public function testRelativeTimeEnglish(): void
     {
-        $fiveMonths = \time() - (5 * 2592000) - 10;
+        $result = $this->extension()->relativeTime(\time() - (150 * 86400), 'en');
 
-        self::assertSame('5 months ago', $this->extension()->relativeTime($fiveMonths, 'en'));
+        self::assertStringContainsString('month', $result);
+        self::assertStringContainsString('ago', $result);
     }
 
-    public function testRelativeTimeSingularGerman(): void
+    public function testRelativeTimeFrenchIsLocalizedNotEnglishFallback(): void
     {
-        $oneMonth = \time() - 2592000 - 10;
+        // Carbon localizes ~280 locales, so French is real French (no English fallback).
+        $result = $this->extension()->relativeTime(\time() - (3 * 86400), 'fr');
 
-        self::assertSame('vor 1 Monat', $this->extension()->relativeTime($oneMonth, 'de'));
+        self::assertStringContainsString('jour', $result);
     }
 
-    public function testRelativeTimeFallsBackToEnglishForUnknownLocale(): void
+    public function testRelativeTimeRegionLocaleFallsBackToBaseLanguage(): void
     {
-        $threeDays = \time() - (3 * 86400) - 10;
+        $result = $this->extension()->relativeTime(\time() - (2 * 365 * 86400), 'de_at');
 
-        self::assertSame('3 days ago', $this->extension()->relativeTime($threeDays, 'fr'));
-    }
-
-    public function testRelativeTimeUsesRegionLocaleBaseLanguage(): void
-    {
-        $twoYears = \time() - (2 * 31536000) - 10;
-
-        self::assertSame('vor 2 Jahren', $this->extension()->relativeTime($twoYears, 'de_at'));
+        self::assertStringContainsString('Jahr', $result);
     }
 }
