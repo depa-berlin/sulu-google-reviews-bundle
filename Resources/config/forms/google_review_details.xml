@@ -27,20 +27,24 @@
                 <title lang="en">Moderation &amp; Display</title>
             </meta>
             <properties>
-                <property name="blocked" type="checkbox" colspan="12">
+                <property name="blocked" type="checkbox" colspan="8">
                     <meta>
-                        <title lang="de">Bewertung sperren (wird im Frontend nicht angezeigt)</title>
-                        <title lang="en">Block Review (will not be shown on the website)</title>
+                        <title lang="de">Bewertung sperren</title>
+                        <title lang="en">Block review</title>
+                        <info_text lang="de">Gesperrte Bewertungen werden im Frontend nicht angezeigt.</info_text>
+                        <info_text lang="en">Blocked reviews are not shown on the website.</info_text>
                     </meta>
                     <params>
                         <param name="type" value="toggler"/>
                     </params>
                 </property>
 
-                <property name="sortOrder" type="number" colspan="12">
+                <property name="sortOrder" type="number" colspan="4">
                     <meta>
-                        <title lang="de">Reihenfolge (für eigene Sortierung, 0 = keine Priorität)</title>
-                        <title lang="en">Sort Order (for custom sorting, 0 = no priority)</title>
+                        <title lang="de">Reihenfolge</title>
+                        <title lang="en">Sort order</title>
+                        <info_text lang="de">Für „Eigene Reihenfolge". 0 = keine Priorität (ans Ende), 1, 2, 3 … = Anzeigereihenfolge.</info_text>
+                        <info_text lang="en">For "Custom Order". 0 = no priority (placed last), 1, 2, 3 … = display order.</info_text>
                     </meta>
                     <params>
                         <param name="min" value="0"/>
