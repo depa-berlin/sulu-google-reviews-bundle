@@ -63,7 +63,7 @@ class TranslateMissingReviewsCommand extends Command
             $changed = false;
 
             foreach ($locales as $locale) {
-                if (isset($existing[$locale]['text']) && '' !== $existing[$locale]['text']) {
+                if (isset($existing[$locale]) && '' !== $existing[$locale]) {
                     continue;
                 }
 
@@ -83,7 +83,7 @@ class TranslateMissingReviewsCommand extends Command
                     continue;
                 }
 
-                $review->setTranslation($locale, $text, '');
+                $review->setTranslation($locale, $text);
                 $changed = true;
                 ++$translated;
             }

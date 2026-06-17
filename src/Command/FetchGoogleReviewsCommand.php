@@ -142,11 +142,7 @@ class FetchGoogleReviewsCommand extends Command
                     $review->setOriginalLanguage($reviewData['text']['languageCode'] ?? null);
                 }
 
-                $review->setTranslation(
-                    $locale,
-                    $reviewData['text']['text'] ?? '',
-                    $reviewData['relativePublishTimeDescription'] ?? ''
-                );
+                $review->setTranslation($locale, $reviewData['text']['text'] ?? '');
             }
         }
 

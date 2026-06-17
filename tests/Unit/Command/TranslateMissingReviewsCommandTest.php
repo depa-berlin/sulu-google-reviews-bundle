@@ -56,7 +56,7 @@ class TranslateMissingReviewsCommandTest extends TestCase
         $review = new GoogleReview();
         $review->setOriginalText('Super magasin')
             ->setOriginalLanguage('fr')
-            ->setTranslation('de', 'Tolles Geschäft', 'vor 2 Monaten');
+            ->setTranslation('de', 'Tolles Geschäft');
 
         $repository = $this->createMock(GoogleReviewRepository::class);
         $repository->method('findAll')->willReturn([$review]);

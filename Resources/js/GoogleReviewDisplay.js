@@ -2,11 +2,6 @@
 import React from 'react';
 import {Divider, Heading, Icon} from 'sulu-admin-bundle/components';
 
-type Translation = {
-    relativeTime: string,
-    text: string,
-};
-
 type ReviewValue = {
     authorName?: string,
     date?: string,
@@ -14,7 +9,7 @@ type ReviewValue = {
     profilePhotoUrl?: ?string,
     rating?: number,
     timestamp?: number,
-    translations?: {[locale: string]: Translation},
+    translations?: {[locale: string]: string},
 };
 
 type Props = {
@@ -131,7 +126,6 @@ export default class GoogleReviewDisplay extends React.Component<Props> {
                     {locales.length === 0
                         ? <div style={{fontSize: 13, color: '#999'}}>{'Noch keine Sprachfassungen importiert.'}</div>
                         : locales.map((locale) => {
-                            const t = translations[locale];
                             const ls = localeStyle(locale);
                             const relative = relativeTime(value.timestamp, locale);
                             return (
@@ -142,7 +136,7 @@ export default class GoogleReviewDisplay extends React.Component<Props> {
                                         </span>
                                         {relative ? <span style={{fontSize: 12, color: '#999'}}>{relative}</span> : null}
                                     </div>
-                                    <div style={{fontSize: 14, lineHeight: 1.6, color: '#333'}}>{t.text}</div>
+                                    <div style={{fontSize: 14, lineHeight: 1.6, color: '#333'}}>{translations[locale]}</div>
                                 </div>
                             );
                         })

@@ -27,7 +27,6 @@ class GoogleReviewTest extends TestCase
         self::assertSame([], $this->review->getTranslations());
         self::assertSame('', $this->review->getText());
         self::assertSame(0, $this->review->getCreatedAtTimestamp());
-        self::assertSame('', $this->review->getRelativeTime());
         self::assertFalse($this->review->isBlocked());
         self::assertSame(0, $this->review->getSortOrder());
     }
@@ -39,7 +38,7 @@ class GoogleReviewTest extends TestCase
         self::assertSame($this->review, $this->review->setRating(5));
         self::assertSame($this->review, $this->review->setOriginalText('Great service!'));
         self::assertSame($this->review, $this->review->setOriginalLanguage('en'));
-        self::assertSame($this->review, $this->review->setTranslation('de', 'Toller Service!', 'vor 3 Monaten'));
+        self::assertSame($this->review, $this->review->setTranslation('de', 'Toller Service!'));
         self::assertSame($this->review, $this->review->setCreatedAtTimestamp(1700000000));
         self::assertSame($this->review, $this->review->setBlocked(true));
         self::assertSame($this->review, $this->review->setSortOrder(1));
@@ -50,13 +49,11 @@ class GoogleReviewTest extends TestCase
         $this->review
             ->setOriginalText('Super magasin')
             ->setOriginalLanguage('fr')
-            ->setTranslation('de', 'Tolles Geschäft', 'vor 2 Monaten')
-            ->setTranslation('en', 'Great shop', '2 months ago');
+            ->setTranslation('de', 'Tolles Geschäft')
+            ->setTranslation('en', 'Great shop');
 
         self::assertSame('Tolles Geschäft', $this->review->getText('de'));
         self::assertSame('Great shop', $this->review->getText('en'));
-        self::assertSame('vor 2 Monaten', $this->review->getRelativeTime('de'));
-        self::assertSame('2 months ago', $this->review->getRelativeTime('en'));
     }
 
     public function testGetTextFallsBackToOriginalForUnknownLocale(): void
@@ -64,15 +61,12 @@ class GoogleReviewTest extends TestCase
         $this->review
             ->setOriginalText('Super magasin')
             ->setOriginalLanguage('fr')
-            ->setTranslation('de', 'Tolles Geschäft', 'vor 2 Monaten');
+            ->setTranslation('de', 'Tolles Geschäft');
 
         // Keine italienische Übersetzung -> Fallback auf Originaltext
         self::assertSame('Super magasin', $this->review->getText('it'));
         // Ohne Locale ebenfalls Originaltext
         self::assertSame('Super magasin', $this->review->getText());
-        // relativeTime hat KEINEN Cross-Locale-Fallback -> leer für fehlende Locale
-        self::assertSame('', $this->review->getRelativeTime('it'));
-        self::assertSame('vor 2 Monaten', $this->review->getRelativeTime('de'));
     }
 
     public function testToDisplayArrayContainsAllLanguages(): void
@@ -83,17 +77,17 @@ class GoogleReviewTest extends TestCase
             ->setCreatedAtTimestamp(1700000000)
             ->setOriginalText('Super magasin')
             ->setOriginalLanguage('fr')
-            ->setTranslation('de', 'Tolles Geschäft', 'vor 2 Monaten')
-            ->setTranslation('en', 'Great shop', '2 months ago');
+            ->setTranslation('de', 'Tolles Geschäft')
+            ->setTranslation('en', 'Great shop');
 
         $display = $this->review->toDisplayArray();
 
         self::assertSame('Maria Schneider', $display['authorName']);
         self::assertSame(5, $display['rating']);
         self::assertSame('fr', $display['originalLanguage']);
-        self::assertSame('Tolles Geschäft', $display['translations']['de']['text']);
-        self::assertSame('vor 2 Monaten', $display['translations']['de']['relativeTime']);
-        self::assertSame('Great shop', $display['translations']['en']['text']);
+        self::assertSame('Tolles Geschäft', $display['translations']['de']);
+        self::assertSame('Great shop', $display['translations']['en']);
+        self::assertSame(1700000000, $display['timestamp']);
         self::assertNotSame('', $display['date']);
     }
 
@@ -112,7 +106,7 @@ class GoogleReviewTest extends TestCase
             ->setRating(4)
             ->setOriginalText('Very good.')
             ->setOriginalLanguage('en')
-            ->setTranslation('de', 'Sehr gut.', 'vor 5 Monaten')
+            ->setTranslation('de', 'Sehr gut.')
             ->setCreatedAtTimestamp(1700000000)
             ->setBlocked(false)
             ->setSortOrder(3);
@@ -128,7 +122,7 @@ class GoogleReviewTest extends TestCase
         self::assertArrayHasKey('originalText', $array);
         self::assertArrayHasKey('originalLanguage', $array);
         self::assertArrayHasKey('createdAtTimestamp', $array);
-        self::assertArrayHasKey('relativeTimeDescription', $array);
+        self::assertArrayHasKey('moderation', $array);
         self::assertArrayHasKey('blocked', $array);
         self::assertArrayHasKey('sortOrder', $array);
     }

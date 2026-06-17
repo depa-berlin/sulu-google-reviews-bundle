@@ -45,11 +45,12 @@ class GoogleReview
     private ?string $originalLanguage = null;
 
     /**
-     * Per-locale content keyed by the Sulu locale, e.g.
-     * ['de' => ['text' => '…', 'relativeTime' => 'vor 1 Monat'], 'en' => [...]].
+     * Per-locale review text keyed by the Sulu locale, e.g.
+     * ['de' => 'Tolles Geschäft', 'en' => 'Great shop'].
      * A new webspace locale simply adds a key — no schema change required.
+     * (Relative time is computed at render time, not stored here.)
      *
-     * @var array<string, array{text: string, relativeTime: string}>
+     * @var array<string, string>
      */
     #[ORM\Column(type: 'json')]
     private array $translations = [];
@@ -138,7 +139,7 @@ class GoogleReview
     }
 
     /**
-     * @return array<string, array{text: string, relativeTime: string}>
+     * @return array<string, string>
      */
     public function getTranslations(): array
     {
@@ -146,7 +147,7 @@ class GoogleReview
     }
 
     /**
-     * @param array<string, array{text: string, relativeTime: string}> $translations
+     * @param array<string, string> $translations
      */
     public function setTranslations(array $translations): static
     {
@@ -155,9 +156,9 @@ class GoogleReview
         return $this;
     }
 
-    public function setTranslation(string $locale, string $text, string $relativeTime): static
+    public function setTranslation(string $locale, string $text): static
     {
-        $this->translations[$locale] = ['text' => $text, 'relativeTime' => $relativeTime];
+        $this->translations[$locale] = $text;
 
         return $this;
     }
@@ -167,27 +168,11 @@ class GoogleReview
      */
     public function getText(?string $locale = null): string
     {
-        if (null !== $locale && isset($this->translations[$locale]['text'])) {
-            return $this->translations[$locale]['text'];
+        if (null !== $locale && isset($this->translations[$locale])) {
+            return $this->translations[$locale];
         }
 
         return $this->originalText ?? '';
-    }
-
-    /**
-     * Relative time description ("vor 1 Monat") for the given locale.
-     *
-     * Returns an empty string when no description is stored for that locale —
-     * deliberately no cross-locale fallback, otherwise a French page could show
-     * a German "vor 1 Monat".
-     */
-    public function getRelativeTime(?string $locale = null): string
-    {
-        if (null !== $locale && isset($this->translations[$locale]['relativeTime'])) {
-            return $this->translations[$locale]['relativeTime'];
-        }
-
-        return '';
     }
 
     public function isBlocked(): bool
@@ -218,7 +203,7 @@ class GoogleReview
      * Structured read-only payload consumed by the admin display field type
      * (google_review_display).
      *
-     * @return array{authorName: string, profilePhotoUrl: string|null, rating: int, date: string, timestamp: int, originalLanguage: string|null, translations: array<string, array{text: string, relativeTime: string}>}
+     * @return array{authorName: string, profilePhotoUrl: string|null, rating: int, date: string, timestamp: int, originalLanguage: string|null, translations: array<string, string>}
      */
     public function toDisplayArray(): array
     {
@@ -234,7 +219,7 @@ class GoogleReview
     }
 
     /**
-     * @return array{id: int|null, authorName: string, profilePhotoUrl: string|null, rating: int, text: string, reviewDisplay: array{authorName: string, profilePhotoUrl: string|null, rating: int, date: string, timestamp: int, originalLanguage: string|null, translations: array<string, array{text: string, relativeTime: string}>}, originalText: string|null, originalLanguage: string|null, createdAtTimestamp: int, relativeTimeDescription: string, blocked: bool, sortOrder: int, moderation: array{blocked: bool, sortOrder: int}}
+     * @return array{id: int|null, authorName: string, profilePhotoUrl: string|null, rating: int, text: string, reviewDisplay: array{authorName: string, profilePhotoUrl: string|null, rating: int, date: string, timestamp: int, originalLanguage: string|null, translations: array<string, string>}, originalText: string|null, originalLanguage: string|null, createdAtTimestamp: int, blocked: bool, sortOrder: int, moderation: array{blocked: bool, sortOrder: int}}
      */
     public function mapToArray(): array
     {
@@ -248,7 +233,6 @@ class GoogleReview
             'originalText'            => $this->originalText,
             'originalLanguage'        => $this->originalLanguage,
             'createdAtTimestamp'      => $this->createdAtTimestamp,
-            'relativeTimeDescription' => $this->getRelativeTime(),
             'blocked'                 => $this->blocked,
             'sortOrder'               => $this->sortOrder,
             // Editierbarer Moderationsbereich (eigener Admin-Feldtyp google_review_moderation)
