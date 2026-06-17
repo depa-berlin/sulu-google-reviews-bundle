@@ -233,7 +233,7 @@ class GoogleReview
     }
 
     /**
-     * @return array{id: int|null, authorName: string, profilePhotoUrl: string|null, rating: int, text: string, reviewDisplay: array{authorName: string, profilePhotoUrl: string|null, rating: int, date: string, originalLanguage: string|null, translations: array<string, array{text: string, relativeTime: string}>}, originalText: string|null, originalLanguage: string|null, createdAtTimestamp: int, relativeTimeDescription: string, blocked: bool, sortOrder: int}
+     * @return array{id: int|null, authorName: string, profilePhotoUrl: string|null, rating: int, text: string, reviewDisplay: array{authorName: string, profilePhotoUrl: string|null, rating: int, date: string, originalLanguage: string|null, translations: array<string, array{text: string, relativeTime: string}>}, originalText: string|null, originalLanguage: string|null, createdAtTimestamp: int, relativeTimeDescription: string, blocked: bool, sortOrder: int, moderation: array{blocked: bool, sortOrder: int}}
      */
     public function mapToArray(): array
     {
@@ -250,6 +250,11 @@ class GoogleReview
             'relativeTimeDescription' => $this->getRelativeTime(),
             'blocked'                 => $this->blocked,
             'sortOrder'               => $this->sortOrder,
+            // Editierbarer Moderationsbereich (eigener Admin-Feldtyp google_review_moderation)
+            'moderation'              => [
+                'blocked'   => $this->blocked,
+                'sortOrder' => $this->sortOrder,
+            ],
         ];
     }
 }

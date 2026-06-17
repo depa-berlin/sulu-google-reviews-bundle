@@ -27,30 +27,7 @@
                 <title lang="en">Moderation &amp; Display</title>
             </meta>
             <properties>
-                <property name="blocked" type="checkbox" colspan="8">
-                    <meta>
-                        <title lang="de">Bewertung sperren</title>
-                        <title lang="en">Block review</title>
-                        <info_text lang="de">Gesperrte Bewertungen werden im Frontend nicht angezeigt.</info_text>
-                        <info_text lang="en">Blocked reviews are not shown on the website.</info_text>
-                    </meta>
-                    <params>
-                        <param name="type" value="toggler"/>
-                    </params>
-                </property>
-
-                <property name="sortOrder" type="number" colspan="4">
-                    <meta>
-                        <title lang="de">Reihenfolge</title>
-                        <title lang="en">Sort order</title>
-                        <info_text lang="de">Für „Eigene Reihenfolge". 0 = keine Priorität (ans Ende), 1, 2, 3 … = Anzeigereihenfolge.</info_text>
-                        <info_text lang="en">For "Custom Order". 0 = no priority (placed last), 1, 2, 3 … = display order.</info_text>
-                    </meta>
-                    <params>
-                        <param name="min" value="0"/>
-                        <param name="step" value="1"/>
-                    </params>
-                </property>
+                <property name="moderation" type="google_review_moderation" colspan="12"/>
             </properties>
         </section>
     </properties>

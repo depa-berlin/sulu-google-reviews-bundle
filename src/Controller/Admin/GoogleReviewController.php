@@ -92,11 +92,14 @@ class GoogleReviewController extends AbstractController
             return $this->json(['error' => 'Invalid JSON body'], Response::HTTP_BAD_REQUEST);
         }
 
-        $newSortOrder = (int) ($data['sortOrder'] ?? 0);
+        // Werte kommen aus dem editierbaren Feldtyp google_review_moderation als Objekt.
+        $moderation = \is_array($data['moderation'] ?? null) ? $data['moderation'] : [];
+        $newSortOrder = (int) ($moderation['sortOrder'] ?? 0);
+        $blocked = (bool) ($moderation['blocked'] ?? false);
         $reviewId = $review->getId();
 
-        $this->repository->wrapInTransaction(function () use ($review, $data, $newSortOrder, $reviewId): void {
-            $review->setBlocked((bool) ($data['blocked'] ?? false));
+        $this->repository->wrapInTransaction(function () use ($review, $blocked, $newSortOrder, $reviewId): void {
+            $review->setBlocked($blocked);
 
             if ($newSortOrder > 0 && $newSortOrder !== $review->getSortOrder()
                 && $reviewId !== null
