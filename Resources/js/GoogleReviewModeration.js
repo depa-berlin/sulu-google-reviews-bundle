@@ -14,7 +14,8 @@ type Props = {
     value: ?Value,
 };
 
-const controlColumn = {display: 'flex', alignItems: 'center', justifyContent: 'flex-end', height: '100%'};
+const rowSpacing = {padding: '8px 0'};
+const controlColumn = {display: 'flex', alignItems: 'center', justifyContent: 'flex-end', height: '100%', padding: '8px 0'};
 
 export default class GoogleReviewModeration extends React.Component<Props> {
     get currentValue(): Value {
@@ -43,10 +44,12 @@ export default class GoogleReviewModeration extends React.Component<Props> {
         return (
             <Grid>
                 <Grid.Item colSpan={9}>
-                    <Heading
-                        description="Gesperrte Bewertungen werden im Frontend nicht angezeigt."
-                        label="Bewertung sperren"
-                    />
+                    <div style={rowSpacing}>
+                        <Heading
+                            description="Gesperrte Bewertungen werden im Frontend nicht angezeigt."
+                            label="Bewertung sperren"
+                        />
+                    </div>
                 </Grid.Item>
                 <Grid.Item colSpan={3}>
                     <div style={controlColumn}>
@@ -55,10 +58,12 @@ export default class GoogleReviewModeration extends React.Component<Props> {
                 </Grid.Item>
 
                 <Grid.Item colSpan={9}>
-                    <Heading
-                        description={'Für „Eigene Reihenfolge". 0 = keine Priorität (ans Ende), 1, 2, 3 … = Anzeigereihenfolge.'}
-                        label="Reihenfolge"
-                    />
+                    <div style={rowSpacing}>
+                        <Heading
+                            description={'Für „Eigene Reihenfolge". 0 = keine Priorität (ans Ende), 1, 2, 3 … = Anzeigereihenfolge.'}
+                            label="Reihenfolge"
+                        />
+                    </div>
                 </Grid.Item>
                 <Grid.Item colSpan={3}>
                     <div style={controlColumn}>
