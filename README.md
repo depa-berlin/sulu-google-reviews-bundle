@@ -213,9 +213,11 @@ When assigning an already-taken sort position, all other entries at that positio
 
 ---
 
-## Twig function (direct usage)
+## Twig functions (direct usage)
 
-The bundle provides the `get_stored_google_reviews()` Twig function for use anywhere in templates, independent of the Sulu block:
+The bundle provides two Twig functions for use anywhere in templates, independent of the Sulu block.
+
+### `get_stored_google_reviews(limit, sort)`
 
 ```twig
 {% set reviews = get_stored_google_reviews(limit, sort) %}
@@ -226,12 +228,22 @@ The bundle provides the `get_stored_google_reviews()` Twig function for use anyw
 | `limit` | `int` | `5` | Any positive integer |
 | `sort` | `string` | `'date'` | `'date'`, `'rating'`, `'custom'` |
 
+### `google_review_relative_time(timestamp, locale)`
+
+Returns a **computed, always-current** relative time (e.g. "3 months ago") from the timestamp — not Google's stored, ageing string. Localized for ~280 locales via Carbon (`diffForHumans`).
+
+| Parameter | Type | Description |
+|---|---|---|
+| `timestamp` | `int` | `review.createdAtTimestamp` |
+| `locale` | `string` | Target locale, e.g. `app.request.locale` |
+
 **Example:**
 
 ```twig
 {% for review in get_stored_google_reviews(3, 'rating') %}
     <p>{{ review.authorName }}: {{ review.rating }} stars</p>
     <p>{{ review.getText(app.request.locale) }}</p>
+    <p>{{ google_review_relative_time(review.createdAtTimestamp, app.request.locale) }}</p>
 {% endfor %}
 ```
 
@@ -243,14 +255,13 @@ The bundle provides the `get_stored_google_reviews()` Twig function for use anyw
 | `profilePhotoUrl` | `string\|null` | URL to Google profile photo |
 | `rating` | `int` | Star rating (4 or 5) |
 | `getText(locale)` | `string` | Review text for the locale, falling back to the original text |
-| `getRelativeTime(locale)` | `string` | Relative time for the locale (e.g. "3 months ago") |
 | `originalText` | `string\|null` | Original text in its source language (fallback) |
 | `originalLanguage` | `string\|null` | Language code of the original text |
 | `createdAtTimestamp` | `int` | Created date as Unix timestamp |
 | `blocked` | `bool` | Block status (when accessing the repository directly) |
 | `sortOrder` | `int` | Custom sort position |
 
-> Note: text and relative time are locale-specific. Pass the current locale in the template — `review.getText(app.request.locale)` / `review.getRelativeTime(app.request.locale)`. `review.text` without an argument returns the original text as a fallback.
+> Note: the review text is locale-specific — use `review.getText(app.request.locale)` (`review.text` without an argument returns the original text as a fallback). The relative time is computed via `google_review_relative_time(...)` instead of being read from a stored value.
 
 ---
 
