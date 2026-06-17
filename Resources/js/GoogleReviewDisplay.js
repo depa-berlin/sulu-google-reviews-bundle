@@ -35,7 +35,7 @@ export default class GoogleReviewDisplay extends React.Component<Props> {
         return [1, 2, 3, 4, 5].map((i) => (
             <Icon
                 key={i}
-                name="star"
+                name="fa-star"
                 style={{color: i <= rating ? '#f5a623' : '#d8d8d8', marginRight: 2}}
             />
         ));
@@ -71,7 +71,10 @@ export default class GoogleReviewDisplay extends React.Component<Props> {
                     <div style={{flex: 1, minWidth: 0}}>
                         <div style={{fontWeight: 600, fontSize: 16}}>{authorName}</div>
                         <div style={{display: 'flex', alignItems: 'center', gap: 12, marginTop: 4}}>
-                            <span>{this.renderStars(rating)}</span>
+                            <span aria-label={rating + ' von 5 Sternen'} style={{display: 'inline-flex', alignItems: 'center', gap: 6}}>
+                                {this.renderStars(rating)}
+                                <span style={{fontSize: 13, color: '#777'}}>{rating + '/5'}</span>
+                            </span>
                             {value.date ? <span style={{fontSize: 13, color: '#777'}}>{value.date}</span> : null}
                         </div>
                     </div>
