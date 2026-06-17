@@ -1,6 +1,7 @@
 // @flow
 import React from 'react';
 import {Divider, Heading, Icon} from 'sulu-admin-bundle/components';
+import {translate} from 'sulu-admin-bundle/utils';
 
 type ReviewValue = {
     authorName?: string,
@@ -101,7 +102,7 @@ export default class GoogleReviewDisplay extends React.Component<Props> {
                     <div style={{flex: 1, minWidth: 0}}>
                         <div style={{fontWeight: 600, fontSize: 16}}>{authorName}</div>
                         <div style={{display: 'flex', alignItems: 'center', gap: 12, marginTop: 4}}>
-                            <span aria-label={rating + ' von 5 Sternen'} style={{display: 'inline-flex', alignItems: 'center', gap: 6}}>
+                            <span aria-label={translate('google_reviews.stars_aria', {rating})} style={{display: 'inline-flex', alignItems: 'center', gap: 6}}>
                                 {this.renderStars(rating)}
                                 <span style={{fontSize: 13, color: '#777'}}>{rating + '/5'}</span>
                             </span>
@@ -111,7 +112,7 @@ export default class GoogleReviewDisplay extends React.Component<Props> {
                     {value.originalLanguage
                         ? (
                             <span style={{background: '#f4f4f4', color: '#666', fontSize: 12, padding: '4px 10px', borderRadius: 4, whiteSpace: 'nowrap'}}>
-                                {'Original: ' + value.originalLanguage.toUpperCase()}
+                                {translate('google_reviews.original_language', {language: value.originalLanguage.toUpperCase()})}
                             </span>
                         )
                         : null
@@ -120,11 +121,11 @@ export default class GoogleReviewDisplay extends React.Component<Props> {
 
                 <Divider />
 
-                <Heading label="Bewertungstext" />
+                <Heading label={translate('google_reviews.review_text')} />
 
                 <div style={{display: 'flex', flexDirection: 'column', gap: 8, marginTop: 8}}>
                     {locales.length === 0
-                        ? <div style={{fontSize: 13, color: '#999'}}>{'Noch keine Sprachfassungen importiert.'}</div>
+                        ? <div style={{fontSize: 13, color: '#999'}}>{translate('google_reviews.no_translations')}</div>
                         : locales.map((locale) => {
                             const ls = localeStyle(locale);
                             const relative = relativeTime(value.timestamp, locale);

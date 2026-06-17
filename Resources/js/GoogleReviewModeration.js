@@ -1,6 +1,7 @@
 // @flow
 import React from 'react';
 import {Grid, Heading, Number as NumberInput, Toggler} from 'sulu-admin-bundle/components';
+import {translate} from 'sulu-admin-bundle/utils';
 
 type Value = {
     blocked?: boolean,
@@ -46,8 +47,8 @@ export default class GoogleReviewModeration extends React.Component<Props> {
                 <Grid.Item colSpan={9}>
                     <div style={rowSpacing}>
                         <Heading
-                            description="Gesperrte Bewertungen werden im Frontend nicht angezeigt."
-                            label="Bewertung sperren"
+                            description={translate('google_reviews.block_review_info')}
+                            label={translate('google_reviews.block_review')}
                         />
                     </div>
                 </Grid.Item>
@@ -60,8 +61,8 @@ export default class GoogleReviewModeration extends React.Component<Props> {
                 <Grid.Item colSpan={9}>
                     <div style={rowSpacing}>
                         <Heading
-                            description={'Für „Eigene Reihenfolge". 0 = keine Priorität (ans Ende), 1, 2, 3 … = Anzeigereihenfolge.'}
-                            label="Reihenfolge"
+                            description={translate('google_reviews.sort_order_info')}
+                            label={translate('google_reviews.sort_order')}
                         />
                     </div>
                 </Grid.Item>

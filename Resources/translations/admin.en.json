@@ -1,0 +1,10 @@
+{
+    "google_reviews.review_text": "Review text",
+    "google_reviews.no_translations": "No language versions imported yet.",
+    "google_reviews.original_language": "Original: {language}",
+    "google_reviews.stars_aria": "{rating} of 5 stars",
+    "google_reviews.block_review": "Block review",
+    "google_reviews.block_review_info": "Blocked reviews are not shown on the website.",
+    "google_reviews.sort_order": "Sort order",
+    "google_reviews.sort_order_info": "For \"Custom Order\". 0 = no priority (placed last), 1, 2, 3 … = display order."
+}

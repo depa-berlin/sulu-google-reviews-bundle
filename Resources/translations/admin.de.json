@@ -1,0 +1,10 @@
+{
+    "google_reviews.review_text": "Bewertungstext",
+    "google_reviews.no_translations": "Noch keine Sprachfassungen importiert.",
+    "google_reviews.original_language": "Original: {language}",
+    "google_reviews.stars_aria": "{rating} von 5 Sternen",
+    "google_reviews.block_review": "Bewertung sperren",
+    "google_reviews.block_review_info": "Gesperrte Bewertungen werden im Frontend nicht angezeigt.",
+    "google_reviews.sort_order": "Reihenfolge",
+    "google_reviews.sort_order_info": "Für „Eigene Reihenfolge\". 0 = keine Priorität (ans Ende), 1, 2, 3 … = Anzeigereihenfolge."
+}
