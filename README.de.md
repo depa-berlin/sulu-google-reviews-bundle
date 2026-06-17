@@ -79,7 +79,7 @@ Die Detailansicht im Admin nutzt einen read-only React-Feldtyp `google_review_di
 1. Import in der Admin-Entry-Datei (`assets/admin/app.js`):
 
    ```js
-   import '../../packages/sulu-google-reviews-bundle/Resources/js';
+   import '../../vendor/depa/sulu-google-reviews-bundle/Resources/js';
    ```
 
 2. Da die Datei außerhalb von `assets/admin/` liegt, in `assets/admin/webpack.config.js` sicherstellen, dass Babel sie mit der Projekt-Config transpiliert und Bare-Imports aufgelöst werden:
@@ -306,7 +306,7 @@ Twig sucht Templates zuerst im Hauptprojekt, dann in den Bundles — deine Versi
 ## Architektur-Übersicht
 
 ```
-packages/sulu-google-reviews-bundle/
+vendor/depa/sulu-google-reviews-bundle/
 ├── src/
 │   ├── Admin/GoogleReviewsAdmin.php                   # Sulu-Navigation & Views
 │   ├── Command/

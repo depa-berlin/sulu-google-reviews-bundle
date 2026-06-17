@@ -79,7 +79,7 @@ The admin detail view uses a read-only React field type `google_review_display` 
 1. Import it in the admin entry file (`assets/admin/app.js`):
 
    ```js
-   import '../../packages/sulu-google-reviews-bundle/Resources/js';
+   import '../../vendor/depa/sulu-google-reviews-bundle/Resources/js';
    ```
 
 2. Since the file lives outside `assets/admin/`, make sure in `assets/admin/webpack.config.js` that Babel transpiles it with the project config and that bare imports are resolved:
@@ -306,7 +306,7 @@ Twig searches for templates first in the main project, then in bundles — your 
 ## Architecture overview
 
 ```
-packages/sulu-google-reviews-bundle/
+vendor/depa/sulu-google-reviews-bundle/
 ├── src/
 │   ├── Admin/GoogleReviewsAdmin.php                   # Sulu navigation & views
 │   ├── Command/
