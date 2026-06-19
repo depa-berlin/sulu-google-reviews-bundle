@@ -8,7 +8,7 @@ use Depa\SuluGoogleReviewsBundle\Repository\GoogleReviewRepository;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: GoogleReviewRepository::class)]
-#[ORM\Table(name: 'sulu_google_review')]
+#[ORM\Table(name: 'depa_googlereviews_reviews')]
 #[ORM\UniqueConstraint(name: 'uq_google_review_author_ts', columns: ['author_name', 'created_at_timestamp'])]
 class GoogleReview
 {
