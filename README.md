@@ -64,7 +64,7 @@ Find your `Place ID` on [Google Maps Platform](https://developers.google.com/map
 bin/adminconsole doctrine:migrations:migrate
 ```
 
-Creates the `sulu_google_review` table.
+Creates the `depa_googlereviews_reviews` table.
 
 ### 6. Clear cache
 

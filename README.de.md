@@ -64,7 +64,7 @@ Die `Place ID` einer Location findet man in der [Google Maps Platform](https://d
 bin/adminconsole doctrine:migrations:migrate
 ```
 
-Dies legt die Tabelle `sulu_google_review` an.
+Dies legt die Tabelle `depa_googlereviews_reviews` an.
 
 ### 6. Cache leeren
 
