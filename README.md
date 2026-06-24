@@ -49,14 +49,14 @@ DepaSuluGoogleReviewsBundle:
 
 ### 4. Set environment variables
 
-In `.env.local` (never commit):
+The bundle ships empty defaults for both variables, so **no** `.env` entry is required — the application boots without them. On the server, set the real values in `.env.local` (never commit):
 
 ```dotenv
 GOOGLE_PLACES_API_KEY=AIzaSy...
 GOOGLE_PLACE_ID=ChIJ...
 ```
 
-Find your `Place ID` on [Google Maps Platform](https://developers.google.com/maps/documentation/places/web-service/place-id).
+Find your `Place ID` on [Google Maps Platform](https://developers.google.com/maps/documentation/places/web-service/place-id). If the values are empty, the import command aborts with a hint.
 
 ### 5. Run database migrations
 

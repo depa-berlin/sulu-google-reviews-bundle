@@ -1,3 +1,9 @@
+parameters:
+    # Leere Defaults, damit das Bundle ohne Eintraege in .env funktioniert.
+    # Die echten Werte werden projektseitig in .env.local (Server) gesetzt.
+    env(GOOGLE_PLACES_API_KEY): ''
+    env(GOOGLE_PLACE_ID): ''
+
 services:
     _defaults:
         autowire: true

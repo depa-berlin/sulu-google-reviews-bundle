@@ -49,14 +49,14 @@ DepaSuluGoogleReviewsBundle:
 
 ### 4. Umgebungsvariablen setzen
 
-In `.env.local` (niemals committen):
+Das Bundle bringt leere Defaults für beide Variablen mit, daher ist **kein** Eintrag in der `.env` nötig — die Anwendung startet auch ohne sie. Auf dem Server die echten Werte in `.env.local` setzen (niemals committen):
 
 ```dotenv
 GOOGLE_PLACES_API_KEY=AIzaSy...
 GOOGLE_PLACE_ID=ChIJ...
 ```
 
-Die `Place ID` einer Location findet man in der [Google Maps Platform](https://developers.google.com/maps/documentation/places/web-service/place-id).
+Die `Place ID` einer Location findet man in der [Google Maps Platform](https://developers.google.com/maps/documentation/places/web-service/place-id). Sind die Werte leer, bricht der Import-Command mit einem Hinweis ab.
 
 ### 5. Datenbank-Migration ausführen
 
