@@ -31,10 +31,10 @@ composer require depa/sulu-google-reviews-bundle
 
 ### 2. Register bundle
 
-Add to `config/bundles.php`:
+With Symfony Flex the bundle is registered in `config/bundles.php` **automatically** on `composer require`. If you don't use Flex, add it manually:
 
 ```php
-Depa\SuluGoogleReviewsBundle\DepaGoogleReviewsBundle::class => ['all' => true],
+Depa\SuluGoogleReviewsBundle\DepaSuluGoogleReviewsBundle::class => ['all' => true],
 ```
 
 ### 3. Import admin routes
@@ -42,8 +42,8 @@ Depa\SuluGoogleReviewsBundle\DepaGoogleReviewsBundle::class => ['all' => true],
 Add to `config/routes/routes_admin.yaml`:
 
 ```yaml
-DepaGoogleReviewsBundle:
-    resource: "@DepaGoogleReviewsBundle/Resources/config/routes_admin.yaml"
+DepaSuluGoogleReviewsBundle:
+    resource: "@DepaSuluGoogleReviewsBundle/Resources/config/routes_admin.yaml"
     prefix: /admin/api
 ```
 
@@ -324,7 +324,7 @@ vendor/depa/sulu-google-reviews-bundle/
 │   │   ├── DeeplReviewTranslator.php                   # DeepL adapter (duck-typed)
 │   │   └── DeeplTranslatorClientInterface.php
 │   ├── Twig/GoogleReviewsTwigExtension.php
-│   └── DepaGoogleReviewsBundle.php                     # Registers the compiler pass
+│   └── DepaSuluGoogleReviewsBundle.php                 # Registers the compiler pass
 └── Resources/
     ├── config/
     │   ├── forms/google_review_details.xml

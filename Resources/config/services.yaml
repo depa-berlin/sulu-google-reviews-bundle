@@ -10,7 +10,7 @@ services:
             - '../../src/Entity/'
             - '../../src/DependencyInjection/'
             - '../../src/Translation/'
-            - '../../src/DepaGoogleReviewsBundle.php'
+            - '../../src/DepaSuluGoogleReviewsBundle.php'
 
     Depa\SuluGoogleReviewsBundle\Admin\GoogleReviewsAdmin:
         tags:
