@@ -11,9 +11,10 @@ class Configuration implements ConfigurationInterface
 {
     public function getConfigTreeBuilder(): TreeBuilder
     {
-        $treeBuilder = new TreeBuilder('depa_google_reviews');
+        $treeBuilder = new TreeBuilder('depa_sulu_google_reviews');
 
         $treeBuilder->getRootNode()
+            ->addDefaultsIfNotSet()
             ->children()
                 ->scalarNode('api_key')
                     ->info('Google Places API key. Defaults to the GOOGLE_PLACES_API_KEY env var (empty if unset).')

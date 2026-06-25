@@ -61,8 +61,8 @@ Die `Place ID` einer Location findet man in der [Google Maps Platform](https://d
 Alternativ lassen sich die Werte (oder abweichende Env-Variablen) über die Bundle-Konfiguration setzen:
 
 ```yaml
-# config/packages/depa_google_reviews.yaml
-depa_google_reviews:
+# config/packages/depa_sulu_google_reviews.yaml
+depa_sulu_google_reviews:
     api_key: '%env(MEINE_KEY_VAR)%'
     place_id: '%env(MEINE_PLACE_VAR)%'
 ```
@@ -324,7 +324,7 @@ vendor/depa/sulu-google-reviews-bundle/
 │   ├── Controller/Admin/GoogleReviewController.php
 │   ├── DependencyInjection/
 │   │   ├── Compiler/TranslatorIntegrationPass.php      # DeepL-Adapter optional verdrahten
-│   │   ├── DepaGoogleReviewsExtension.php              # Auto-Konfiguration per prepend
+│   │   ├── DepaSuluGoogleReviewsExtension.php          # Auto-Konfiguration per prepend
 │   │   └── Configuration.php
 │   ├── Entity/GoogleReview.php
 │   ├── Repository/GoogleReviewRepository.php

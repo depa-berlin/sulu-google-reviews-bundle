@@ -12,7 +12,7 @@ use Symfony\Component\DependencyInjection\Extension\Extension;
 use Symfony\Component\DependencyInjection\Extension\PrependExtensionInterface;
 use Symfony\Component\DependencyInjection\Loader\YamlFileLoader;
 
-class DepaGoogleReviewsExtension extends Extension implements PrependExtensionInterface
+class DepaSuluGoogleReviewsExtension extends Extension implements PrependExtensionInterface
 {
     public function load(array $configs, ContainerBuilder $container): void
     {
@@ -59,11 +59,11 @@ class DepaGoogleReviewsExtension extends Extension implements PrependExtensionIn
             $container->prependExtensionConfig('doctrine', [
                 'orm' => [
                     'mappings' => [
-                        'DepaGoogleReviewsBundle' => [
+                        'DepaSuluGoogleReviewsBundle' => [
                             'type'   => 'attribute',
                             'dir'    => __DIR__ . '/../Entity',
                             'prefix' => 'Depa\\SuluGoogleReviewsBundle\\Entity',
-                            'alias'  => 'DepaGoogleReviewsBundle',
+                            'alias'  => 'DepaSuluGoogleReviewsBundle',
                         ],
                     ],
                 ],
