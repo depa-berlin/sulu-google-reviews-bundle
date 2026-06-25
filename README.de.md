@@ -58,6 +58,15 @@ GOOGLE_PLACE_ID=ChIJ...
 
 Die `Place ID` einer Location findet man in der [Google Maps Platform](https://developers.google.com/maps/documentation/places/web-service/place-id). Sind die Werte leer, bricht der Import-Command mit einem Hinweis ab.
 
+Alternativ lassen sich die Werte (oder abweichende Env-Variablen) über die Bundle-Konfiguration setzen:
+
+```yaml
+# config/packages/depa_google_reviews.yaml
+depa_google_reviews:
+    api_key: '%env(MEINE_KEY_VAR)%'
+    place_id: '%env(MEINE_PLACE_VAR)%'
+```
+
 ### 5. Datenbank-Migration ausführen
 
 ```bash

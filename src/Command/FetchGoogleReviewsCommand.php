@@ -27,8 +27,8 @@ class FetchGoogleReviewsCommand extends Command
         private readonly HttpClientInterface $httpClient,
         private readonly GoogleReviewRepository $repository,
         private readonly WebspaceManagerInterface $webspaceManager,
-        private readonly string $apiKey,
-        private readonly string $placeId,
+        private readonly ?string $apiKey = null,
+        private readonly ?string $placeId = null,
     ) {
         parent::__construct();
     }
@@ -37,7 +37,10 @@ class FetchGoogleReviewsCommand extends Command
     {
         $io = new SymfonyStyle($input, $output);
 
-        if ('' === $this->apiKey || '' === $this->placeId) {
+        $apiKey = (string) $this->apiKey;
+        $placeId = (string) $this->placeId;
+
+        if ('' === $apiKey || '' === $placeId) {
             $io->error('GOOGLE_PLACES_API_KEY und GOOGLE_PLACE_ID müssen in .env.local gesetzt sein.');
 
             return Command::FAILURE;
@@ -59,9 +62,9 @@ class FetchGoogleReviewsCommand extends Command
 
         foreach ($locales as $locale) {
             try {
-                $response = $this->httpClient->request('GET', self::API_URL . '/' . \rawurlencode($this->placeId), [
+                $response = $this->httpClient->request('GET', self::API_URL . '/' . \rawurlencode($placeId), [
                     'headers' => [
-                        'X-Goog-Api-Key'   => $this->apiKey,
+                        'X-Goog-Api-Key'   => $apiKey,
                         'X-Goog-FieldMask' => 'reviews',
                     ],
                     'query' => [

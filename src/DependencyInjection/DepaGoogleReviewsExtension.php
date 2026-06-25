@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Depa\SuluGoogleReviewsBundle\DependencyInjection;
 
+use Depa\SuluGoogleReviewsBundle\Command\FetchGoogleReviewsCommand;
 use Depa\SuluGoogleReviewsBundle\Entity\GoogleReview;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -17,6 +18,12 @@ class DepaGoogleReviewsExtension extends Extension implements PrependExtensionIn
     {
         $loader = new YamlFileLoader($container, new FileLocator(__DIR__ . '/../../Resources/config'));
         $loader->load('services.yaml');
+
+        $config = $this->processConfiguration(new Configuration(), $configs);
+
+        $command = $container->getDefinition(FetchGoogleReviewsCommand::class);
+        $command->setArgument('$apiKey', $config['api_key']);
+        $command->setArgument('$placeId', $config['place_id']);
     }
 
     public function prepend(ContainerBuilder $container): void

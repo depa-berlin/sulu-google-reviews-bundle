@@ -1,9 +1,3 @@
-parameters:
-    # Leere Defaults, damit das Bundle ohne Eintraege in .env funktioniert.
-    # Die echten Werte werden projektseitig in .env.local (Server) gesetzt.
-    env(GOOGLE_PLACES_API_KEY): ''
-    env(GOOGLE_PLACE_ID): ''
-
 services:
     _defaults:
         autowire: true
@@ -30,8 +24,6 @@ services:
             - { name: controller.service_arguments }
 
     Depa\SuluGoogleReviewsBundle\Command\FetchGoogleReviewsCommand:
-        arguments:
-            $apiKey: '%env(GOOGLE_PLACES_API_KEY)%'
-            $placeId: '%env(GOOGLE_PLACE_ID)%'
+        # $apiKey/$placeId werden in der Extension aus der Bundle-Config gesetzt.
         tags:
             - { name: console.command }
