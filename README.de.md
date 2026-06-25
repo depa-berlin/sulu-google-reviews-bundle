@@ -342,7 +342,11 @@ vendor/depa/sulu-google-reviews-bundle/
     │   └── services.yaml
     ├── js/
     │   ├── index.js                                    # Feldtyp-Registrierung
-    │   └── GoogleReviewDisplay.js                      # read-only Admin-Feldtyp
+    │   ├── GoogleReviewDisplay.js                      # read-only Anzeige-Feldtyp
+    │   └── GoogleReviewModeration.js                   # editierbarer Moderations-Feldtyp (Sperren / Reihenfolge)
+    ├── translations/
+    │   ├── admin.de.json                               # Admin-Feldtyp-Beschriftungen (de)
+    │   └── admin.en.json                               # Admin-Feldtyp-Beschriftungen (en)
     └── views/
         └── includes/blocks/
             └── block--google-reviews.html.twig
