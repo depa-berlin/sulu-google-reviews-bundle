@@ -10,18 +10,41 @@ use Sulu\Component\Webspace\Manager\WebspaceManagerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
+/**
+ * @phpstan-type NormalizedReview array{
+ *     authorName: string,
+ *     photoUri: string|null,
+ *     rating: int,
+ *     timestamp: int,
+ *     text: string,
+ *     textLanguage: string|null,
+ *     originalText: string|null,
+ *     originalLanguage: string|null
+ * }
+ */
 #[AsCommand(
     name: 'sulu:google-reviews:fetch',
     description: 'Fetches Google Places reviews (≥4 stars) per webspace locale and stores them in the database.'
 )]
 class FetchGoogleReviewsCommand extends Command
 {
-    private const API_URL = 'https://places.googleapis.com/v1/places';
+    /**
+     * Places API (New, v1): returns up to 5 reviews ranked by "most relevant".
+     * The endpoint offers no sort option (verified against the official reference).
+     */
+    private const API_URL_NEW = 'https://places.googleapis.com/v1/places';
+
+    /**
+     * Places API (Legacy): the only Google endpoint that supports reviews_sort=newest.
+     * Requires the legacy "Places API" to be enabled for the project and allowed on the key.
+     */
+    private const API_URL_LEGACY = 'https://maps.googleapis.com/maps/api/place/details/json';
 
     public function __construct(
         private readonly HttpClientInterface $httpClient,
@@ -31,6 +54,17 @@ class FetchGoogleReviewsCommand extends Command
         private readonly ?string $placeId = null,
     ) {
         parent::__construct();
+    }
+
+    protected function configure(): void
+    {
+        $this->addOption(
+            'newest',
+            null,
+            InputOption::VALUE_NONE,
+            'Fetch the newest reviews via the Legacy Places API (reviews_sort=newest) instead of Google\'s "most relevant". '
+            . 'Requires the legacy "Places API" enabled for the project and allowed on the API key.'
+        );
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
@@ -45,6 +79,11 @@ class FetchGoogleReviewsCommand extends Command
 
             return Command::FAILURE;
         }
+
+        $newest = (bool) $input->getOption('newest');
+        $io->note($newest
+            ? 'Modus: neueste Bewertungen (Legacy Places API, reviews_sort=newest).'
+            : 'Modus: von Google vorgeschlagene Bewertungen ("most relevant", Places API New).');
 
         $locales = array_values(array_unique($this->webspaceManager->getAllLocales()));
         if ([] === $locales) {
@@ -61,45 +100,21 @@ class FetchGoogleReviewsCommand extends Command
         $succeededLocales = [];
 
         foreach ($locales as $locale) {
-            try {
-                $response = $this->httpClient->request('GET', self::API_URL . '/' . \rawurlencode($placeId), [
-                    'headers' => [
-                        'X-Goog-Api-Key'   => $apiKey,
-                        'X-Goog-FieldMask' => 'reviews',
-                    ],
-                    'query' => [
-                        // Sulu-Locale (z. B. "de_at") in BCP-47 (z. B. "de-AT") umwandeln
-                        'languageCode' => \str_replace('_', '-', $locale),
-                    ],
-                ]);
+            $reviews = $newest
+                ? $this->fetchLegacyReviews($io, $apiKey, $placeId, $locale)
+                : $this->fetchNewReviews($io, $apiKey, $placeId, $locale);
 
-                $statusCode = $response->getStatusCode();
-                $data = $response->toArray(false);
-            } catch (TransportExceptionInterface $e) {
-                $io->warning(\sprintf('Sprache "%s": Google Places API nicht erreichbar: %s', $locale, $e->getMessage()));
-                continue;
-            } catch (\Exception $e) {
-                $io->warning(\sprintf('Sprache "%s": Fehler beim Abrufen der API-Antwort: %s', $locale, $e->getMessage()));
-                continue;
-            }
-
-            if (200 !== $statusCode) {
-                $io->warning(\sprintf(
-                    'Sprache "%s": Google Places API Fehler (HTTP %d): %s',
-                    $locale,
-                    $statusCode,
-                    $data['error']['message'] ?? 'keine Fehlermeldung'
-                ));
+            // null = Abruf fehlgeschlagen (Warnung wurde bereits ausgegeben); [] = erfolgreich, aber leer.
+            if (null === $reviews) {
                 continue;
             }
 
             $succeededLocales[] = $locale;
 
-            foreach ($data['reviews'] ?? [] as $reviewData) {
-                $rating = (int) ($reviewData['rating'] ?? 0);
-                $authorName = $reviewData['authorAttribution']['displayName'] ?? '';
-                $publishTime = $reviewData['publishTime'] ?? null;
-                $timestamp = null !== $publishTime ? (\strtotime($publishTime) ?: 0) : 0;
+            foreach ($reviews as $reviewData) {
+                $rating = $reviewData['rating'];
+                $authorName = $reviewData['authorName'];
+                $timestamp = $reviewData['timestamp'];
                 $key = $authorName . '|' . $timestamp;
 
                 if ($rating < 4) {
@@ -120,7 +135,7 @@ class FetchGoogleReviewsCommand extends Command
 
                     $review = $existing ?? new GoogleReview();
                     $review->setAuthorName($authorName);
-                    $review->setProfilePhotoUrl($reviewData['authorAttribution']['photoUri'] ?? null);
+                    $review->setProfilePhotoUrl($reviewData['photoUri']);
                     $review->setRating($rating);
                     $review->setCreatedAtTimestamp($timestamp);
 
@@ -134,18 +149,17 @@ class FetchGoogleReviewsCommand extends Command
                     }
                 }
 
-                // Originaltext: liefert die API nur, wenn der angezeigte Text übersetzt wurde.
-                $original = $reviewData['originalText'] ?? null;
-                if (null !== $original && isset($original['text'])) {
-                    $review->setOriginalText($original['text']);
-                    $review->setOriginalLanguage($original['languageCode'] ?? null);
+                // Separater Originaltext nur, wenn die API ihn liefert (Places API New bei übersetztem Text).
+                if (null !== $reviewData['originalText']) {
+                    $review->setOriginalText($reviewData['originalText']);
+                    $review->setOriginalLanguage($reviewData['originalLanguage']);
                 } elseif (null === $review->getOriginalText()) {
-                    // Kein separater Originaltext → Text war bereits in Originalsprache
-                    $review->setOriginalText($reviewData['text']['text'] ?? '');
-                    $review->setOriginalLanguage($reviewData['text']['languageCode'] ?? null);
+                    // Kein separater Originaltext → angezeigter Text als Original übernehmen.
+                    $review->setOriginalText($reviewData['text']);
+                    $review->setOriginalLanguage($reviewData['textLanguage']);
                 }
 
-                $review->setTranslation($locale, $reviewData['text']['text'] ?? '');
+                $review->setTranslation($locale, $reviewData['text']);
             }
         }
 
@@ -178,5 +192,142 @@ class FetchGoogleReviewsCommand extends Command
         ));
 
         return Command::SUCCESS;
+    }
+
+    /**
+     * Fetches reviews from the Places API (New, v1) — Google's "most relevant" ranking.
+     *
+     * @return list<NormalizedReview>|null null on failure (a warning has been emitted)
+     */
+    private function fetchNewReviews(SymfonyStyle $io, string $apiKey, string $placeId, string $locale): ?array
+    {
+        try {
+            $response = $this->httpClient->request('GET', self::API_URL_NEW . '/' . \rawurlencode($placeId), [
+                'headers' => [
+                    'X-Goog-Api-Key'   => $apiKey,
+                    'X-Goog-FieldMask' => 'reviews',
+                ],
+                'query' => [
+                    // Sulu-Locale (z. B. "de_at") in BCP-47 (z. B. "de-AT") umwandeln
+                    'languageCode' => \str_replace('_', '-', $locale),
+                ],
+            ]);
+
+            $statusCode = $response->getStatusCode();
+            $data = $response->toArray(false);
+        } catch (TransportExceptionInterface $e) {
+            $io->warning(\sprintf('Sprache "%s": Google Places API nicht erreichbar: %s', $locale, $e->getMessage()));
+
+            return null;
+        } catch (\Exception $e) {
+            $io->warning(\sprintf('Sprache "%s": Fehler beim Abrufen der API-Antwort: %s', $locale, $e->getMessage()));
+
+            return null;
+        }
+
+        if (200 !== $statusCode) {
+            $io->warning(\sprintf(
+                'Sprache "%s": Google Places API Fehler (HTTP %d): %s',
+                $locale,
+                $statusCode,
+                $data['error']['message'] ?? 'keine Fehlermeldung'
+            ));
+
+            return null;
+        }
+
+        $normalized = [];
+        foreach ($data['reviews'] ?? [] as $review) {
+            $publishTime = $review['publishTime'] ?? null;
+
+            $normalized[] = [
+                'authorName'       => $review['authorAttribution']['displayName'] ?? '',
+                'photoUri'         => $review['authorAttribution']['photoUri'] ?? null,
+                'rating'           => (int) ($review['rating'] ?? 0),
+                'timestamp'        => null !== $publishTime ? (\strtotime($publishTime) ?: 0) : 0,
+                'text'             => $review['text']['text'] ?? '',
+                'textLanguage'     => $review['text']['languageCode'] ?? null,
+                'originalText'     => $review['originalText']['text'] ?? null,
+                'originalLanguage' => $review['originalText']['languageCode'] ?? null,
+            ];
+        }
+
+        return $normalized;
+    }
+
+    /**
+     * Fetches reviews from the Legacy Places API with reviews_sort=newest.
+     *
+     * The legacy endpoint returns HTTP 200 even on logical errors; the real outcome is in
+     * the JSON "status" field. The response shape differs from the v1 API (snake_case,
+     * "time" as a Unix timestamp, no separate original-text field), so it is normalized here.
+     *
+     * @return list<NormalizedReview>|null null on failure (a warning has been emitted)
+     */
+    private function fetchLegacyReviews(SymfonyStyle $io, string $apiKey, string $placeId, string $locale): ?array
+    {
+        try {
+            $response = $this->httpClient->request('GET', self::API_URL_LEGACY, [
+                'query' => [
+                    'place_id'     => $placeId,
+                    'fields'       => 'reviews',
+                    'reviews_sort' => 'newest',
+                    'language'     => \str_replace('_', '-', $locale),
+                    'key'          => $apiKey,
+                ],
+            ]);
+
+            $statusCode = $response->getStatusCode();
+            $data = $response->toArray(false);
+        } catch (TransportExceptionInterface $e) {
+            $io->warning(\sprintf('Sprache "%s": Legacy Places API nicht erreichbar: %s', $locale, $e->getMessage()));
+
+            return null;
+        } catch (\Exception $e) {
+            $io->warning(\sprintf('Sprache "%s": Fehler beim Abrufen der Legacy-API-Antwort: %s', $locale, $e->getMessage()));
+
+            return null;
+        }
+
+        $apiStatus = $data['status'] ?? 'UNKNOWN';
+
+        // "ZERO_RESULTS" ist ein gültiges Ergebnis ohne Bewertungen, kein Fehler.
+        if ('ZERO_RESULTS' === $apiStatus) {
+            return [];
+        }
+
+        if (200 !== $statusCode || 'OK' !== $apiStatus) {
+            $io->warning(\sprintf(
+                'Sprache "%s": Legacy Places API Fehler (HTTP %d, %s): %s',
+                $locale,
+                $statusCode,
+                $apiStatus,
+                $data['error_message'] ?? 'keine Fehlermeldung'
+            ));
+
+            return null;
+        }
+
+        $normalized = [];
+        foreach ($data['result']['reviews'] ?? [] as $review) {
+            $translated = (bool) ($review['translated'] ?? false);
+            $text = $review['text'] ?? '';
+            $language = $review['language'] ?? null;
+
+            $normalized[] = [
+                'authorName'   => $review['author_name'] ?? '',
+                'photoUri'     => $review['profile_photo_url'] ?? null,
+                'rating'       => (int) ($review['rating'] ?? 0),
+                'timestamp'    => (int) ($review['time'] ?? 0),
+                'text'         => $text,
+                'textLanguage' => $language,
+                // Die Legacy-API liefert keinen separaten Originaltext. Ist der Text übersetzt,
+                // kennen wir das Original nicht → null (Fallback übernimmt dann den angezeigten Text).
+                'originalText'     => $translated ? null : $text,
+                'originalLanguage' => $translated ? null : ($review['original_language'] ?? $language),
+            ];
+        }
+
+        return $normalized;
     }
 }

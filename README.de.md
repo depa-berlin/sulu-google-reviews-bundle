@@ -163,6 +163,21 @@ bin/adminconsole sulu:google-reviews:fetch
 
 Der Command importiert neue Bewertungen (≥ 4 Sterne) und aktualisiert bei bereits vorhandenen Einträgen Text, Rating, Profilbild und Zeitangabe. Manuelle Moderationsfelder (Gesperrt, Eigene Reihenfolge) bleiben dabei erhalten.
 
+### Neueste statt „beste" Bewertungen abrufen (optional)
+
+Standardmäßig ruft der Command die von Google als **am relevantesten** eingestuften Bewertungen ab. Die moderne Places API (New) bietet **keine** Sortieroption und liefert daher immer diese Auswahl. Um stattdessen die **neuesten** Bewertungen abzurufen, übergib `--newest`:
+
+```bash
+bin/adminconsole sulu:google-reviews:fetch --newest
+```
+
+Dies nutzt die **Legacy Places API** (`reviews_sort=newest`) — der einzige Google-Endpoint, der Bewertungen sortieren kann. Voraussetzungen:
+
+- Die alte **„Places API"** muss im Google-Cloud-Projekt aktiviert sein (getrennt von „Places API (New)"; neu angelegte Projekte können sie nicht mehr aktivieren), und
+- der API-Key muss **beide** APIs (New + Legacy) nutzen dürfen.
+
+Ist die Legacy-API nicht verfügbar, protokolliert der Lauf eine Warnung für die betroffene Locale und importiert dafür nichts. Ohne `--newest` bleibt das Verhalten unverändert.
+
 ### Mehrsprachigkeit
 
 Der Command ruft die Bewertungen **je Webspace-Locale** ab (ermittelt automatisch über den Sulu `WebspaceManager`). Für jede konfigurierte Sprache wird Googles übersetzte Fassung des Bewertungstextes sowie die lokalisierte Zeitangabe gespeichert — alles in **derselben** Datenbankzeile. Eine Bewertung bleibt damit unabhängig von der Sprachenanzahl **ein einziger Eintrag im Admin**.
@@ -342,11 +357,7 @@ vendor/depa/sulu-google-reviews-bundle/
     │   └── services.yaml
     ├── js/
     │   ├── index.js                                    # Feldtyp-Registrierung
-    │   ├── GoogleReviewDisplay.js                      # read-only Anzeige-Feldtyp
-    │   └── GoogleReviewModeration.js                   # editierbarer Moderations-Feldtyp (Sperren / Reihenfolge)
-    ├── translations/
-    │   ├── admin.de.json                               # Admin-Feldtyp-Beschriftungen (de)
-    │   └── admin.en.json                               # Admin-Feldtyp-Beschriftungen (en)
+    │   └── GoogleReviewDisplay.js                      # read-only Admin-Feldtyp
     └── views/
         └── includes/blocks/
             └── block--google-reviews.html.twig
