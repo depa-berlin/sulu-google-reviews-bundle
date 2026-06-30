@@ -163,6 +163,21 @@ bin/adminconsole sulu:google-reviews:fetch
 
 The command imports new reviews (≥ 4 stars) and, for existing entries, updates text, rating, profile photo and relative time. Manual moderation fields (blocked, custom sort order) are preserved.
 
+### Fetching the newest reviews instead of "most relevant" (optional)
+
+By default the command fetches the reviews Google ranks as **most relevant**. The modern Places API (New) offers **no** sort option, so it always returns that set. To fetch the **newest** reviews instead, pass `--newest`:
+
+```bash
+bin/adminconsole sulu:google-reviews:fetch --newest
+```
+
+This uses the **Legacy Places API** (`reviews_sort=newest`) — the only Google endpoint that can sort reviews. It requires:
+
+- the legacy **"Places API"** enabled for the Google Cloud project (separate from "Places API (New)"; newly created projects can no longer enable it), and
+- an API key allowed to use **both** APIs (New + Legacy).
+
+If the legacy API is unavailable, the run logs a warning for the affected locale and imports nothing for it. Without `--newest` the behaviour is unchanged.
+
 ### Multilingual support
 
 The command fetches reviews **per webspace locale** (resolved automatically via Sulu's `WebspaceManager`). For each configured language, Google's translated version of the review text and the localized relative time are stored — all in the **same** database row. A review therefore stays **a single entry in the admin** regardless of the number of languages.
@@ -342,11 +357,7 @@ vendor/depa/sulu-google-reviews-bundle/
     │   └── services.yaml
     ├── js/
     │   ├── index.js                                    # Field type registration
-    │   ├── GoogleReviewDisplay.js                      # read-only review display field
-    │   └── GoogleReviewModeration.js                   # editable moderation field (block / sort order)
-    ├── translations/
-    │   ├── admin.de.json                               # admin field-type labels (de)
-    │   └── admin.en.json                               # admin field-type labels (en)
+    │   └── GoogleReviewDisplay.js                      # read-only admin field type
     └── views/
         └── includes/blocks/
             └── block--google-reviews.html.twig
