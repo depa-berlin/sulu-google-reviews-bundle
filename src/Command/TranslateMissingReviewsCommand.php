@@ -60,10 +60,17 @@ class TranslateMissingReviewsCommand extends Command
             }
 
             $existing = $review->getTranslations();
+            $originalBase = $this->baseLanguage($review->getOriginalLanguage());
             $changed = false;
 
             foreach ($locales as $locale) {
                 if (isset($existing[$locale]) && '' !== $existing[$locale]) {
+                    continue;
+                }
+
+                // Den Originaltext nicht in seine eigene Sprache "übersetzen" (Quelle == Ziel);
+                // getText() fällt für diese Locale ohnehin auf den Originaltext zurück.
+                if (null !== $originalBase && $this->baseLanguage($locale) === $originalBase) {
                     continue;
                 }
 
@@ -115,5 +122,20 @@ class TranslateMissingReviewsCommand extends Command
         ));
 
         return Command::SUCCESS;
+    }
+
+    /**
+     * Base language of a locale or language code, e.g. "de_AT"/"de-AT" -> "de". Null if empty.
+     */
+    private function baseLanguage(?string $value): ?string
+    {
+        if (null === $value || '' === $value) {
+            return null;
+        }
+
+        $parts = \preg_split('/[-_]/', $value) ?: [];
+        $base = \strtolower($parts[0] ?? '');
+
+        return '' === $base ? null : $base;
     }
 }

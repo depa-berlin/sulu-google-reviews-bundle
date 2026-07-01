@@ -94,7 +94,9 @@ class GoogleReviewController extends AbstractController
 
         // Werte kommen aus dem editierbaren Feldtyp google_review_moderation als Objekt.
         $moderation = \is_array($data['moderation'] ?? null) ? $data['moderation'] : [];
-        $newSortOrder = (int) ($moderation['sortOrder'] ?? 0);
+        // Negative Werte serverseitig abfangen (das Admin-Feld erzwingt min=0 nur clientseitig):
+        // sortOrder 0 = "keine Priorität", negative Werte würden die Custom-Sortierung verfälschen.
+        $newSortOrder = \max(0, (int) ($moderation['sortOrder'] ?? 0));
         $blocked = (bool) ($moderation['blocked'] ?? false);
         $reviewId = $review->getId();
 
