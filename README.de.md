@@ -136,6 +136,7 @@ Der Block „Google Bewertungen" steht danach im Sulu-Admin-Editor beim Hinzufü
 | **Titel** | Optionale Überschrift über den Bewertungen |
 | **Anzahl** | Wie viele Bewertungen angezeigt werden (Standard: 3) |
 | **Sortierung** | Sortierungsmodus (siehe unten) |
+| **Text ohne Bewertungen** | Meldung, wenn keine Bewertungen vorhanden sind (optional; sonst Standardtext) |
 
 #### Sortierungsmodi
 
