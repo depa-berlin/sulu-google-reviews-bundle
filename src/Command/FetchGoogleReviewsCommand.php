@@ -25,7 +25,8 @@ use Symfony\Contracts\HttpClient\HttpClientInterface;
  *     text: string,
  *     textLanguage: string|null,
  *     originalText: string|null,
- *     originalLanguage: string|null
+ *     originalLanguage: string|null,
+ *     textIsOriginal: bool
  * }
  */
 #[AsCommand(
@@ -153,8 +154,10 @@ class FetchGoogleReviewsCommand extends Command
                 if (null !== $reviewData['originalText']) {
                     $review->setOriginalText($reviewData['originalText']);
                     $review->setOriginalLanguage($reviewData['originalLanguage']);
-                } elseif (null === $review->getOriginalText()) {
-                    // Kein separater Originaltext → angezeigter Text als Original übernehmen.
+                } elseif (null === $review->getOriginalText() && $reviewData['textIsOriginal']) {
+                    // Angezeigter Text ist zugleich das Original (nicht übersetzt) → als Original übernehmen.
+                    // Bei übersetztem Legacy-Text ist textIsOriginal=false, damit wir keine Übersetzung
+                    // fälschlich als Original speichern; ein späterer Default-Lauf trägt das echte Original nach.
                     $review->setOriginalText($reviewData['text']);
                     $review->setOriginalLanguage($reviewData['textLanguage']);
                 }
@@ -249,6 +252,8 @@ class FetchGoogleReviewsCommand extends Command
                 'textLanguage'     => $review['text']['languageCode'] ?? null,
                 'originalText'     => $review['originalText']['text'] ?? null,
                 'originalLanguage' => $review['originalText']['languageCode'] ?? null,
+                // Ohne separaten Originaltext ist der angezeigte Text bereits das Original.
+                'textIsOriginal'   => !isset($review['originalText']['text']),
             ];
         }
 
@@ -322,9 +327,11 @@ class FetchGoogleReviewsCommand extends Command
                 'text'         => $text,
                 'textLanguage' => $language,
                 // Die Legacy-API liefert keinen separaten Originaltext. Ist der Text übersetzt,
-                // kennen wir das Original nicht → null (Fallback übernimmt dann den angezeigten Text).
+                // kennen wir das Original nicht → null; textIsOriginal=false verhindert, dass die
+                // Übersetzung als Original gespeichert wird.
                 'originalText'     => $translated ? null : $text,
                 'originalLanguage' => $translated ? null : ($review['original_language'] ?? $language),
+                'textIsOriginal'   => !$translated,
             ];
         }
 
