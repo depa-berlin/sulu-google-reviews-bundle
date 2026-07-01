@@ -6,7 +6,7 @@
         {% endif %}
 
         {% if reviews is empty %}
-            <p class="google-reviews__empty">Aktuell sind keine Bewertungen verfügbar.</p>
+            <p class="google-reviews__empty">{{ content.emptyText|default('Aktuell sind keine Bewertungen verfügbar.') }}</p>
         {% else %}
             <div class="row">
                 {% for review in reviews %}

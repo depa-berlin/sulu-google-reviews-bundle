@@ -36,6 +36,13 @@ class DepaSuluGoogleReviewsExtension extends Extension implements PrependExtensi
                 'forms' => [
                     'directories' => [__DIR__ . '/../../Resources/config/forms'],
                 ],
+                'templates' => [
+                    'block' => [
+                        'directories' => [
+                            'depa_sulu_google_reviews' => __DIR__ . '/../../Resources/config/templates/blocks',
+                        ],
+                    ],
+                ],
                 'resources' => [
                     GoogleReview::RESOURCE_KEY => [
                         'routes' => [

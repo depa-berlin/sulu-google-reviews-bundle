@@ -136,6 +136,7 @@ The "Google Reviews" block will now appear in the Sulu admin editor when adding 
 | **Title** | Optional heading above the reviews |
 | **Limit** | Number of reviews to display (default: 3) |
 | **Sort** | Sort mode (see below) |
+| **Empty Text** | Message shown when no reviews are available (optional; falls back to a default) |
 
 #### Sort modes
 
