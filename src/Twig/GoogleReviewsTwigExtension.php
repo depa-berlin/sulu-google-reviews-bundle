@@ -44,7 +44,10 @@ class GoogleReviewsTwigExtension
             return '';
         }
 
-        $date = CarbonImmutable::createFromTimestamp($timestamp);
+        // Zeitzone explizit setzen: der Default von createFromTimestamp() unterscheidet sich
+        // zwischen Carbon 2 (System-TZ) und 3 (UTC). Für diffForHumans() ist das Ergebnis ohnehin
+        // zeitzonenunabhängig; die explizite Angabe hält das Verhalten versionsstabil.
+        $date = CarbonImmutable::createFromTimestamp($timestamp, 'UTC');
 
         $normalized = $this->normalizeLocale($locale);
         if (null !== $normalized) {
