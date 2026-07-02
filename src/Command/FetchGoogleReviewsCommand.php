@@ -19,7 +19,6 @@ use Symfony\Contracts\HttpClient\HttpClientInterface;
 /**
  * @phpstan-type NormalizedReview array{
  *     authorName: string,
- *     photoUri: string|null,
  *     rating: int,
  *     timestamp: int,
  *     text: string,
@@ -136,7 +135,6 @@ class FetchGoogleReviewsCommand extends Command
 
                     $review = $existing ?? new GoogleReview();
                     $review->setAuthorName($authorName);
-                    $review->setProfilePhotoUrl($reviewData['photoUri']);
                     $review->setRating($rating);
                     $review->setCreatedAtTimestamp($timestamp);
 
@@ -245,7 +243,6 @@ class FetchGoogleReviewsCommand extends Command
 
             $normalized[] = [
                 'authorName'       => $review['authorAttribution']['displayName'] ?? '',
-                'photoUri'         => $review['authorAttribution']['photoUri'] ?? null,
                 'rating'           => (int) ($review['rating'] ?? 0),
                 'timestamp'        => null !== $publishTime ? (\strtotime($publishTime) ?: 0) : 0,
                 'text'             => $review['text']['text'] ?? '',
@@ -321,7 +318,6 @@ class FetchGoogleReviewsCommand extends Command
 
             $normalized[] = [
                 'authorName'   => $review['author_name'] ?? '',
-                'photoUri'     => $review['profile_photo_url'] ?? null,
                 'rating'       => (int) ($review['rating'] ?? 0),
                 'timestamp'    => (int) ($review['time'] ?? 0),
                 'text'         => $text,

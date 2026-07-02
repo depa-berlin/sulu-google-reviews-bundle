@@ -7,7 +7,6 @@ type ReviewValue = {
     authorName?: string,
     date?: string,
     originalLanguage?: ?string,
-    profilePhotoUrl?: ?string,
     rating?: number,
     timestamp?: number,
     translations?: {[locale: string]: string},
@@ -83,22 +82,10 @@ export default class GoogleReviewDisplay extends React.Component<Props> {
         return (
             <div>
                 <div style={{display: 'flex', alignItems: 'center', gap: 14, marginBottom: 16}}>
-                    {value.profilePhotoUrl
-                        ? (
-                            <img
-                                alt={authorName}
-                                height={48}
-                                src={value.profilePhotoUrl}
-                                style={{width: 48, height: 48, borderRadius: '50%', objectFit: 'cover', flexShrink: 0}}
-                                width={48}
-                            />
-                        )
-                        : (
-                            <span style={{width: 48, height: 48, borderRadius: '50%', background: '#E6F1FB', color: '#0C447C', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 600, fontSize: 16, flexShrink: 0}}>
-                                {initials}
-                            </span>
-                        )
-                    }
+                    {/* Kein externes Google-Profilbild: Initialen-Avatar */}
+                    <span style={{width: 48, height: 48, borderRadius: '50%', background: '#E6F1FB', color: '#0C447C', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 600, fontSize: 16, flexShrink: 0}}>
+                        {initials}
+                    </span>
                     <div style={{flex: 1, minWidth: 0}}>
                         <div style={{fontWeight: 600, fontSize: 16}}>{authorName}</div>
                         <div style={{display: 'flex', alignItems: 'center', gap: 12, marginTop: 4}}>

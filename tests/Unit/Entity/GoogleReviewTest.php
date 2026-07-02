@@ -20,7 +20,6 @@ class GoogleReviewTest extends TestCase
     {
         self::assertNull($this->review->getId());
         self::assertSame('', $this->review->getAuthorName());
-        self::assertNull($this->review->getProfilePhotoUrl());
         self::assertSame(0, $this->review->getRating());
         self::assertNull($this->review->getOriginalText());
         self::assertNull($this->review->getOriginalLanguage());
@@ -34,7 +33,6 @@ class GoogleReviewTest extends TestCase
     public function testSettersReturnStatic(): void
     {
         self::assertSame($this->review, $this->review->setAuthorName('Test'));
-        self::assertSame($this->review, $this->review->setProfilePhotoUrl('https://example.com/photo.jpg'));
         self::assertSame($this->review, $this->review->setRating(5));
         self::assertSame($this->review, $this->review->setOriginalText('Great service!'));
         self::assertSame($this->review, $this->review->setOriginalLanguage('en'));
@@ -91,14 +89,6 @@ class GoogleReviewTest extends TestCase
         self::assertNotSame('', $display['date']);
     }
 
-    public function testProfilePhotoUrlNullable(): void
-    {
-        $this->review->setProfilePhotoUrl('https://example.com/photo.jpg');
-        $this->review->setProfilePhotoUrl(null);
-
-        self::assertNull($this->review->getProfilePhotoUrl());
-    }
-
     public function testMapToArrayContainsAllFields(): void
     {
         $this->review
@@ -115,7 +105,6 @@ class GoogleReviewTest extends TestCase
 
         self::assertArrayHasKey('id', $array);
         self::assertArrayHasKey('authorName', $array);
-        self::assertArrayHasKey('profilePhotoUrl', $array);
         self::assertArrayHasKey('rating', $array);
         self::assertArrayHasKey('text', $array);
         self::assertArrayHasKey('reviewDisplay', $array);
