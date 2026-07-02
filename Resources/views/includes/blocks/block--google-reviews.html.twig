@@ -13,20 +13,10 @@
                     <div class="col-md-4">
                         <div class="google-reviews__card">
                             <div class="google-reviews__author">
-                                {% if review.profilePhotoUrl %}
-                                    <img
-                                        class="google-reviews__avatar"
-                                        src="{{ review.profilePhotoUrl }}"
-                                        alt="{{ review.authorName }}"
-                                        loading="lazy"
-                                        width="40"
-                                        height="40"
-                                    >
-                                {% else %}
-                                    <span class="google-reviews__avatar google-reviews__avatar--fallback">
-                                        {{ review.authorName is not empty ? review.authorName|first|upper : '?' }}
-                                    </span>
-                                {% endif %}
+                                {# Kein externes Google-Profilbild: Initialen-Avatar (kein Drittabruf, keine Bild-Speicherung) #}
+                                <span class="google-reviews__avatar google-reviews__avatar--fallback">
+                                    {{ review.authorName is not empty ? review.authorName|first|upper : '?' }}
+                                </span>
                                 <span class="google-reviews__author-name">{{ review.authorName }}</span>
                             </div>
 
