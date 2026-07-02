@@ -23,9 +23,6 @@ class GoogleReview
     #[ORM\Column(length: 255)]
     private string $authorName = '';
 
-    #[ORM\Column(length: 500, nullable: true)]
-    private ?string $profilePhotoUrl = null;
-
     #[ORM\Column(type: 'integer')]
     private int $rating = 0;
 
@@ -74,18 +71,6 @@ class GoogleReview
     public function setAuthorName(string $authorName): static
     {
         $this->authorName = $authorName;
-
-        return $this;
-    }
-
-    public function getProfilePhotoUrl(): ?string
-    {
-        return $this->profilePhotoUrl;
-    }
-
-    public function setProfilePhotoUrl(?string $profilePhotoUrl): static
-    {
-        $this->profilePhotoUrl = $profilePhotoUrl;
 
         return $this;
     }
@@ -203,13 +188,12 @@ class GoogleReview
      * Structured read-only payload consumed by the admin display field type
      * (google_review_display).
      *
-     * @return array{authorName: string, profilePhotoUrl: string|null, rating: int, date: string, timestamp: int, originalLanguage: string|null, translations: array<string, string>}
+     * @return array{authorName: string, rating: int, date: string, timestamp: int, originalLanguage: string|null, translations: array<string, string>}
      */
     public function toDisplayArray(): array
     {
         return [
             'authorName'       => $this->authorName,
-            'profilePhotoUrl'  => $this->profilePhotoUrl,
             'rating'           => $this->rating,
             'date'             => $this->createdAtTimestamp > 0 ? \date('d.m.Y', $this->createdAtTimestamp) : '',
             'timestamp'        => $this->createdAtTimestamp,
@@ -219,14 +203,13 @@ class GoogleReview
     }
 
     /**
-     * @return array{id: int|null, authorName: string, profilePhotoUrl: string|null, rating: int, text: string, reviewDisplay: array{authorName: string, profilePhotoUrl: string|null, rating: int, date: string, timestamp: int, originalLanguage: string|null, translations: array<string, string>}, originalText: string|null, originalLanguage: string|null, createdAtTimestamp: int, blocked: bool, sortOrder: int, moderation: array{blocked: bool, sortOrder: int}}
+     * @return array{id: int|null, authorName: string, rating: int, text: string, reviewDisplay: array{authorName: string, rating: int, date: string, timestamp: int, originalLanguage: string|null, translations: array<string, string>}, originalText: string|null, originalLanguage: string|null, createdAtTimestamp: int, blocked: bool, sortOrder: int, moderation: array{blocked: bool, sortOrder: int}}
      */
     public function mapToArray(): array
     {
         return [
             'id'                      => $this->id,
             'authorName'              => $this->authorName,
-            'profilePhotoUrl'         => $this->profilePhotoUrl,
             'rating'                  => $this->rating,
             'text'                    => $this->getText(),
             'reviewDisplay'           => $this->toDisplayArray(),
